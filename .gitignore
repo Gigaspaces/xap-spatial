@@ -12,3 +12,5 @@
 /.project
 /.settings/
 /tools/build.properties
+xap-spatial.iml
+.idea
