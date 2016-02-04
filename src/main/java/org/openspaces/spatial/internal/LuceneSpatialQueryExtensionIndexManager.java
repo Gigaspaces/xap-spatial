@@ -52,20 +52,16 @@ public class LuceneSpatialQueryExtensionIndexManager extends QueryExtensionIndex
     private static final int MAX_RESULTS = Integer.MAX_VALUE;
 
     private final Map<String, LuceneSpatialTypeIndex> _luceneHolderMap = new ConcurrentHashMap<String, LuceneSpatialTypeIndex>();
-    private final String _spaceName;
     private final String _namespace;
     private final LuceneConfiguration _luceneConfiguration;
-    private final File _luceneIndexDirectory;
 
     public LuceneSpatialQueryExtensionIndexManager(QueryExtensionIndexManagerConfig config) {
         super(config);
-        _spaceName = config.getFullSpaceName().replace(":", "-");
         _namespace = config.getNamespace();
         _luceneConfiguration = new LuceneConfiguration(config);
-        _luceneIndexDirectory = new File(_luceneConfiguration.getLocation(), _spaceName);
-        if (_luceneIndexDirectory.exists()) {
-            FileUtils.deleteFileOrDirectory(_luceneIndexDirectory);
-        }
+        File location = new File(_luceneConfiguration.getLocation());
+        if (location.exists())
+            FileUtils.deleteFileOrDirectory(location);
     }
 
     @Override
@@ -74,7 +70,7 @@ public class LuceneSpatialQueryExtensionIndexManager extends QueryExtensionIndex
             luceneHolder.close();
 
         _luceneHolderMap.clear();
-        FileUtils.deleteFileOrDirectory(_luceneIndexDirectory);
+        FileUtils.deleteFileOrDirectory(new File(_luceneConfiguration.getLocation()));
         super.close();
     }
 
@@ -84,7 +80,7 @@ public class LuceneSpatialQueryExtensionIndexManager extends QueryExtensionIndex
         final String typeName = typeDescriptor.getTypeName();
         if (!_luceneHolderMap.containsKey(typeName)) {
             try {
-                _luceneHolderMap.put(typeName, new LuceneSpatialTypeIndex(_luceneConfiguration, _spaceName, _namespace, typeDescriptor));
+                _luceneHolderMap.put(typeName, new LuceneSpatialTypeIndex(_luceneConfiguration, _namespace, typeDescriptor));
             } catch (IOException e) {
                 throw new SpaceRuntimeException("Failed to introduce type " + typeName, e);
             }

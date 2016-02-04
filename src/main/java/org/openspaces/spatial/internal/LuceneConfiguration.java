@@ -83,7 +83,7 @@ public class LuceneConfiguration {
     private final StrategyFactory _strategyFactory;
     private final DirectoryFactory _directoryFactory;
     private final int _maxUncommittedChanges;
-    private String _location;
+    private final String _location;
 
     private enum SupportedSpatialStrategy {
         RecursivePrefixTree, BBox, Composite;
@@ -135,6 +135,7 @@ public class LuceneConfiguration {
         this._spatialContext = createSpatialContext(config);
         this._strategyFactory = createStrategyFactory(config);
         this._directoryFactory = createDirectoryFactory(config);
+        this._location = initLocation(config);
         //TODO: read from config
         this._maxUncommittedChanges = 1000;
     }
@@ -256,16 +257,26 @@ public class LuceneConfiguration {
         }
     }
 
+    private static String initLocation(QueryExtensionIndexManagerConfig config) {
+        //try space-config.spatial.lucene.storage.location first, if not configured then use workingDir.
+        //If workingDir == null (Embedded space , Integrated PU , etc...) then use process working dir (user.dir)
+        String location = config.getSpaceProperty(STORAGE_LOCATION, null);
+        if (location == null) {
+            location = config.getWorkDir();
+            if (location == null)
+                location = System.getProperty("user.dir");
+            location += FILE_SEPARATOR + "luceneIndex";
+        }
+        String spaceInstanceName = config.getFullSpaceName().replace(":", "-");
+        return location + FILE_SEPARATOR + spaceInstanceName;
+    }
+
     protected DirectoryFactory createDirectoryFactory(QueryExtensionIndexManagerConfig config) {
         String directoryType = config.getSpaceProperty(STORAGE_DIRECTORYTYPE, STORAGE_DIRECTORYTYPE_DEFAULT);
         SupportedDirectory directory = SupportedDirectory.byName(directoryType);
 
         switch (directory) {
             case MMapDirectory: {
-                //try space-config.spatial.lucene.storage.location first, if not configured then use workingDir.
-                //If workingDir == null (Embedded space , Integrated PU , etc...) then use process working dir (user.dir)
-                _location = config.getSpaceProperty(STORAGE_LOCATION, (config.getWorkDir() == null ? System.getProperty("user.dir")+FILE_SEPARATOR+"luceneIndex" : config.getWorkDir() + FILE_SEPARATOR + "luceneIndex"));
-
                 return new DirectoryFactory() {
                     @Override
                     public Directory getDirectory(String relativePath) throws IOException {

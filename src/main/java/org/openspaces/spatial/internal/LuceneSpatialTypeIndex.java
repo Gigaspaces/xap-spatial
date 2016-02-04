@@ -19,8 +19,8 @@ public class LuceneSpatialTypeIndex implements Closeable {
     private final int maxUncommittedChanges;
     private final AtomicInteger uncommittedChanges = new AtomicInteger(0);
 
-    public LuceneSpatialTypeIndex(LuceneConfiguration luceneConfig, String spaceName, String namespace, SpaceTypeDescriptor typeDescriptor) throws IOException {
-        this.directory = luceneConfig.getDirectory(spaceName + File.separator + typeDescriptor.getTypeName() + File.separator + "entries");
+    public LuceneSpatialTypeIndex(LuceneConfiguration luceneConfig, String namespace, SpaceTypeDescriptor typeDescriptor) throws IOException {
+        this.directory = luceneConfig.getDirectory(typeDescriptor.getTypeName() + File.separator + "entries");
         this.indexWriter = new IndexWriter(directory, new IndexWriterConfig(new StandardAnalyzer())
                 .setOpenMode(IndexWriterConfig.OpenMode.CREATE));
         this.queryExtensionInfo = typeDescriptor.getQueryExtensions().getByNamespace(namespace);

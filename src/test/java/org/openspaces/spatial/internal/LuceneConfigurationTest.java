@@ -60,8 +60,8 @@ public class LuceneConfigurationTest {
         //test directory
         Directory directory = luceneConfiguration.getDirectory("A");
         Assert.assertEquals("MMapDirectory should be the default directory", MMapDirectory.class, directory.getClass());
-        String expectedLocation = getWorkingDir()+ File.separator+"luceneIndex";
-        Assert.assertEquals("WorkingDir/luceneIndex ("+expectedLocation+") should be the default location", expectedLocation, luceneConfiguration.getLocation());
+        String expectedLocation = getWorkingDir()+ File.separator + "luceneIndex" + File.separator + config.getFullSpaceName();
+        Assert.assertEquals("Default location", expectedLocation, luceneConfiguration.getLocation());
         Assert.assertEquals("MMapDirectory location should be workingDir/luceneIndex/A "+expectedLocation+"/A", new MMapDirectory(Paths.get(expectedLocation + "/A")).getDirectory(), ((MMapDirectory) directory).getDirectory());
 
         //test strategy
@@ -116,7 +116,10 @@ public class LuceneConfigurationTest {
         Directory directory = luceneConfiguration.getDirectory("subfolder");
 
         Assert.assertEquals("Unexpected Directory type", MMapDirectory.class, directory.getClass());
-        Assert.assertEquals(temporaryFolder.getRoot().getAbsolutePath() + File.separator + "tempdir" + File.separator + "subfolder",
+        Assert.assertEquals(temporaryFolder.getRoot().getAbsolutePath()
+                        + File.separator + "tempdir"
+                        + File.separator + config.getFullSpaceName()
+                        + File.separator + "subfolder",
                 ((MMapDirectory) directory).getDirectory().toFile().getAbsolutePath());
     }
 
@@ -130,7 +133,10 @@ public class LuceneConfigurationTest {
         Directory directory = luceneConfiguration.getDirectory("subfolder");
 
         Assert.assertEquals("Unexpected Directory type", MMapDirectory.class, directory.getClass());
-        Assert.assertEquals(System.getProperty("user.dir") + File.separator + "luceneIndex" + File.separator + "subfolder",
+        Assert.assertEquals(System.getProperty("user.dir") +
+                        File.separator + "luceneIndex" +
+                        File.separator + config.getFullSpaceName() +
+                        File.separator + "subfolder",
                 ((MMapDirectory) directory).getDirectory().toFile().getAbsolutePath());
     }
 
@@ -346,6 +352,11 @@ public class LuceneConfigurationTest {
 
     private static class MockConfig extends QueryExtensionIndexManagerConfig {
         private Properties properties = new Properties();
+
+        @Override
+        public String getFullSpaceName() {
+            return "foo";
+        }
 
         @Override
         public String getSpaceProperty(String key, String defaultValue) {
