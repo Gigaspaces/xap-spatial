@@ -34,7 +34,7 @@ import org.openspaces.spatial.spatial4j.Spatial4jShapeProvider;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
@@ -50,6 +50,7 @@ public class LuceneSpatialQueryExtensionIndexManager extends QueryExtensionIndex
     protected static final String XAP_ID = "XAP_ID";
     private static final String XAP_ID_VERSION = "XAP_ID_VERSION";
     private static final int MAX_RESULTS = Integer.MAX_VALUE;
+    private static final Map<String, SpatialOperation> _spatialOperations = initSpatialOperations();
 
     private final Map<String, LuceneSpatialTypeIndex> _luceneHolderMap = new ConcurrentHashMap<String, LuceneSpatialTypeIndex>();
     private final String _namespace;
@@ -92,7 +93,7 @@ public class LuceneSpatialQueryExtensionIndexManager extends QueryExtensionIndex
     @Override
     public boolean insertEntry(IndexableServerEntry entry, boolean removePrevious) {
         final String typeName = entry.getSpaceTypeDescriptor().getTypeName();
-        final LuceneSpatialTypeIndex luceneHolder = getLuceneHolder(typeName);
+        final LuceneSpatialTypeIndex luceneHolder = _luceneHolderMap.get(typeName);
         try {
             final Document doc = createDocumentIfNeeded(luceneHolder, entry);
             if (doc != null || removePrevious) {
@@ -116,7 +117,7 @@ public class LuceneSpatialQueryExtensionIndexManager extends QueryExtensionIndex
     public void removeEntry(SpaceTypeDescriptor typeDescriptor, String uid, int version)
     {
         final String typeName = typeDescriptor.getTypeName();
-        final LuceneSpatialTypeIndex luceneHolder = getLuceneHolder(typeName);
+        final LuceneSpatialTypeIndex luceneHolder = _luceneHolderMap.get(typeName);
         try {
             luceneHolder.getIndexWriter().deleteDocuments(new TermQuery(new Term(XAP_ID_VERSION, concat(uid, version))));
             luceneHolder.commit(false);
@@ -125,18 +126,44 @@ public class LuceneSpatialQueryExtensionIndexManager extends QueryExtensionIndex
         }
     }
 
-    private LuceneSpatialTypeIndex getLuceneHolder(String className) {
-        return _luceneHolderMap.get(className);
+    @Override
+    public QueryExtensionIndexEntryIterator scanIndex(String typeName, String path, String operationName, Object operand) {
+        if (_logger.isLoggable(Level.FINE))
+            _logger.log(Level.FINE, "scanIndex [typeName=" + typeName + ", path=" + path + ", operation=" + operationName + ", operand=" + operand + "]");
+
+        final SpatialStrategy spatialStrategy = _luceneConfiguration.getStrategy(path);
+        final Query query = spatialStrategy.makeQuery(new SpatialArgs(toOperation(operationName), toShape(operand)));
+        final LuceneSpatialTypeIndex luceneHolder = _luceneHolderMap.get(typeName);
+        try {
+            // Flush
+            luceneHolder.commit(true);
+
+            DirectoryReader dr = DirectoryReader.open(luceneHolder.getDirectory());
+            IndexSearcher is = new IndexSearcher(dr);
+            ScoreDoc[] scores = is.search(query, MAX_RESULTS).scoreDocs;
+            String alreadyMatchedIndexPath = _luceneConfiguration.rematchAlreadyMatchedIndexPath(path) ? null : path;
+            return new LuceneSpatialQueryIndexIterator(this, alreadyMatchedIndexPath, scores, is, dr);
+        } catch (IOException e) {
+            throw new SpaceRuntimeException("Failed to scan index", e);
+        }
     }
 
-    private Document createDocumentIfNeeded(LuceneSpatialTypeIndex luceneHolder, IndexableServerEntry entry) {
+    @Override
+    public boolean filter(String operationName, Object leftOperand, Object rightOperand) {
+        if (_logger.isLoggable(Level.FINE))
+            _logger.log(Level.FINE, "filter [operation=" + operationName + ", leftOperand=" + leftOperand + ", rightOperand=" + rightOperand + "]");
+
+        return toOperation(operationName).evaluate(toShape(leftOperand), toShape(rightOperand));
+    }
+
+    protected Document createDocumentIfNeeded(LuceneSpatialTypeIndex luceneHolder, IndexableServerEntry entry) {
 
         Document doc = null;
         for (String path : luceneHolder.getQueryExtensionInfo().getPaths()) {
             final Object fieldValue = entry.getPathValue(path);
             if (fieldValue instanceof Shape) {
-                final SpatialStrategy strategy = createStrategyByFieldName(path);
-                final Field[] fields = strategy.createIndexableFields(toSpatial4j((Shape) fieldValue));
+                final SpatialStrategy strategy = _luceneConfiguration.getStrategy(path);
+                final Field[] fields = strategy.createIndexableFields(toShape(fieldValue));
                 if (doc == null)
                     doc = new Document();
                 for (Field field : fields)
@@ -154,97 +181,28 @@ public class LuceneSpatialQueryExtensionIndexManager extends QueryExtensionIndex
         return doc;
     }
 
-    public com.spatial4j.core.shape.Shape toSpatial4j(Shape gigaShape) {
-        if (gigaShape instanceof Spatial4jShapeProvider)
-            return ((Spatial4jShapeProvider)gigaShape).getSpatial4jShape(_luceneConfiguration.getSpatialContext());
-        throw new IllegalArgumentException("Unsupported shape [" + gigaShape.getClass().getName() + "]");
+    public com.spatial4j.core.shape.Shape toShape(Object obj) {
+        if (obj instanceof Spatial4jShapeProvider)
+            return ((Spatial4jShapeProvider)obj).getSpatial4jShape(_luceneConfiguration.getSpatialContext());
+        throw new IllegalArgumentException("Unsupported shape [" + obj.getClass().getName() + "]");
     }
 
-    private SpatialStrategy createStrategyByFieldName(String fieldName) {
-        return _luceneConfiguration.getStrategy(fieldName);
-    }
-
-    public boolean filter(String operation, Object leftOperand, Object rightOperand) {
-        if (_logger.isLoggable(Level.FINE))
-            _logger.log(Level.FINE, "filter [operation=" + operation + ", leftOperand=" + leftOperand + ", rightOperand=" + rightOperand + "]");
-
-        if (!(leftOperand instanceof Shape) || !(rightOperand instanceof Shape))
-            throw new IllegalArgumentException("Operation " + operation + " can be applied only for geometrical shapes, instead given: " + leftOperand + " and " + rightOperand);
-        SpatialOp spatialOperation;
-        try {
-            spatialOperation = SpatialOp.valueOf(operation.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Operation " + operation + " not found - supported operations: " + Arrays.asList(SpatialOp.values()));
-        }
-        com.spatial4j.core.shape.Shape shape1 = toSpatial4j((Shape) leftOperand);
-        com.spatial4j.core.shape.Shape shape2 = toSpatial4j((Shape) rightOperand);
-        return spatialOperation.evaluate(shape1, shape2);
-    }
-
-    @Override
-    public QueryExtensionIndexEntryIterator scanIndex(String typeName, String path, String operation, Object operand) {
-        if (_logger.isLoggable(Level.FINE))
-            _logger.log(Level.FINE, "scanIndex [typeName=" + typeName + ", path=" + path + ", operation=" + operation + ", operand=" + operand + "]");
-
-        final Query query = createQuery(path, operand, operation);
-        final LuceneSpatialTypeIndex luceneHolder = getLuceneHolder(typeName);
-        try {
-            // Flush
-            luceneHolder.commit(true);
-
-            DirectoryReader dr = DirectoryReader.open(luceneHolder.getDirectory());
-            IndexSearcher is = new IndexSearcher(dr);
-            ScoreDoc[] scores = is.search(query, MAX_RESULTS).scoreDocs;
-            String alreadyMatchedIndexPath = _luceneConfiguration.rematchAlreadyMatchedIndexPath(path) ? null : path;
-            return new LuceneSpatialQueryIndexIterator(this, alreadyMatchedIndexPath, scores, is, dr);
-        } catch (IOException e) {
-            throw new SpaceRuntimeException("Failed to scan index", e);
-        }
-    }
-
-    private enum SpatialOp {
-        WITHIN(SpatialOperation.IsWithin),
-        CONTAINS(SpatialOperation.Contains),
-        INTERSECTS(SpatialOperation.Intersects);
-        /*,
-        DISJOINT(SpatialOperation.IsDisjointTo) {
-            @Override
-            public Query makeQuery(SpatialStrategy spatialStrategy, com.spatial4j.core.shape.Shape subjectShape) {
-                SpatialArgs intersectsArgs = new SpatialArgs(SpatialOperation.Intersects, subjectShape);
-                Query intersectsQuery = spatialStrategy.makeQuery(intersectsArgs);
-
-                return new BooleanQuery.Builder()
-                        .add(new MatchAllDocsQuery(), BooleanClause.Occur.SHOULD)
-                        .add(intersectsQuery, BooleanClause.Occur.MUST_NOT)
-                        .build();
-            }
-        };*/
-
-        private final SpatialOperation _spatialOperation;
-
-        SpatialOp(SpatialOperation spatialOperation) {
-            this._spatialOperation = spatialOperation;
-        }
-
-        public Query makeQuery(SpatialStrategy spatialStrategy, com.spatial4j.core.shape.Shape subjectShape) {
-            SpatialArgs args = new SpatialArgs(_spatialOperation, subjectShape);
-            return spatialStrategy.makeQuery(args);
-        }
-
-        public boolean evaluate(com.spatial4j.core.shape.Shape indexedShape, com.spatial4j.core.shape.Shape queryShape) {
-            return _spatialOperation.evaluate(indexedShape, queryShape);
-        }
-    }
-
-    private Query createQuery(String path, Object operand, String operation) {
-        final SpatialOp spatialOp = SpatialOp.valueOf(operation.toUpperCase());
-        if (!(operand instanceof Shape))
-            throw new IllegalArgumentException("Operation " + operation + " can be applied only for geometrical shapes, instead given: " + operand);
-        com.spatial4j.core.shape.Shape subjectShape = toSpatial4j((Shape) operand);
-        return spatialOp.makeQuery(createStrategyByFieldName(path), subjectShape);
+    protected SpatialOperation toOperation(String operationName) {
+        SpatialOperation result = _spatialOperations.get(operationName.toUpperCase());
+        if (result == null)
+            throw new IllegalArgumentException("Operation " + operationName + " not found - supported operations: " + _spatialOperations.keySet());
+        return result;
     }
 
     protected String concat(String uid, int version) {
         return uid + "_" + version;
+    }
+
+    private static Map<String, SpatialOperation> initSpatialOperations() {
+        Map<String, SpatialOperation> result = new HashMap<String, SpatialOperation>();
+        result.put("WITHIN", SpatialOperation.IsWithin);
+        result.put("CONTAINS", SpatialOperation.Contains);
+        result.put("INTERSECTS", SpatialOperation.Intersects);
+        return result;
     }
 }

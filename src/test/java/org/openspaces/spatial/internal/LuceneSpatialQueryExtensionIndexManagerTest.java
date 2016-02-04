@@ -41,7 +41,7 @@ public class LuceneSpatialQueryExtensionIndexManagerTest {
                 point(74.87319946289062, 40.50544628405211),
                 point(75.05722045898438, 41.14039880964587));
 
-        Shape spatial4jPolygon = _handler.toSpatial4j(polygonWithCloseRing);
+        Shape spatial4jPolygon = _handler.toShape(polygonWithCloseRing);
         Assert.assertNotNull(spatial4jPolygon);
     }
 
@@ -52,7 +52,7 @@ public class LuceneSpatialQueryExtensionIndexManagerTest {
                 point(73.30490112304686, 41.15797827873605),
                 point(75.05722045898438, 41.14039880964587));
 
-        Shape spatial4jPolygon = _handler.toSpatial4j(polygonWithCloseRing);
+        Shape spatial4jPolygon = _handler.toShape(polygonWithCloseRing);
         Assert.assertNotNull(spatial4jPolygon);
     }
 
@@ -63,7 +63,7 @@ public class LuceneSpatialQueryExtensionIndexManagerTest {
                 point(73.30490112304686, 41.15797827873605),
                 point(73.64822387695311, 40.447992135544304));
 
-        Shape spatial4jPolygon = _handler.toSpatial4j(polygonWithCloseRing);
+        Shape spatial4jPolygon = _handler.toShape(polygonWithCloseRing);
         Assert.assertNotNull(spatial4jPolygon);
     }
     @Test
@@ -71,7 +71,7 @@ public class LuceneSpatialQueryExtensionIndexManagerTest {
 
         Polygon concavePolygon = polygon(point(5, 5), point(5, 0), point(2.5, 2.5), point(0, 0), point(0, 5));
 
-        Shape spatial4jPolygon = _handler.toSpatial4j(concavePolygon);
+        Shape spatial4jPolygon = _handler.toShape(concavePolygon);
         Assert.assertNotNull(spatial4jPolygon);
     }
     @Test(expected=com.spatial4j.core.exception.InvalidShapeException.class)
@@ -79,7 +79,7 @@ public class LuceneSpatialQueryExtensionIndexManagerTest {
 
         Polygon concavePolygon = polygon(point(5, 5), point(5, 0),point(2.5, 7.5), point(0, 0),point(0, 5));
 
-        Shape spatial4jPolygon = _handler.toSpatial4j(concavePolygon);
+        Shape spatial4jPolygon = _handler.toShape(concavePolygon);
         Assert.assertNotNull(spatial4jPolygon);
     }
 }
