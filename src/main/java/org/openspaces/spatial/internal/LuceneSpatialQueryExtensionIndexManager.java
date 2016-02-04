@@ -76,39 +76,39 @@ public class LuceneSpatialQueryExtensionIndexManager extends QueryExtensionIndex
     }
 
     @Override
-    public void introduceType(SpaceTypeDescriptor typeDescriptor) {
-        super.introduceType(typeDescriptor);
+    public void registerType(SpaceTypeDescriptor typeDescriptor) {
+        super.registerType(typeDescriptor);
         final String typeName = typeDescriptor.getTypeName();
         if (!_luceneHolderMap.containsKey(typeName)) {
             try {
                 _luceneHolderMap.put(typeName, new LuceneSpatialTypeIndex(_luceneConfiguration, _namespace, typeDescriptor));
             } catch (IOException e) {
-                throw new SpaceRuntimeException("Failed to introduce type " + typeName, e);
+                throw new SpaceRuntimeException("Failed to register type " + typeName, e);
             }
         } else {
-            _logger.log(Level.WARNING, "Type [" + typeName + "] is already introduced to geospatial handler");
+            _logger.log(Level.WARNING, "Type [" + typeName + "] is already registered");
         }
     }
 
     @Override
-    public boolean insertEntry(IndexableServerEntry entry, boolean removePrevious) {
+    public boolean insertEntry(IndexableServerEntry entry, boolean hasPrevious) {
         final String typeName = entry.getSpaceTypeDescriptor().getTypeName();
         final LuceneSpatialTypeIndex luceneHolder = _luceneHolderMap.get(typeName);
         try {
             final Document doc = createDocumentIfNeeded(luceneHolder, entry);
-            if (doc != null || removePrevious) {
-                //Add new
-                if (doc != null)
-                    luceneHolder.getIndexWriter().addDocument(doc);
-                //Delete old
-                if (removePrevious)
-                    luceneHolder.getIndexWriter().deleteDocuments(new TermQuery(new Term(XAP_ID_VERSION,
-                            concat(entry.getUid(), entry.getVersion() - 1))));
+            // Add new
+            if (doc != null)
+                luceneHolder.getIndexWriter().addDocument(doc);
+            // Delete old
+            if (hasPrevious)
+                luceneHolder.getIndexWriter().deleteDocuments(new TermQuery(new Term(XAP_ID_VERSION,
+                        concat(entry.getUid(), entry.getVersion() - 1))));
+            // Flush
+            if (doc != null || hasPrevious)
                 luceneHolder.commit(false);
-            }
             return doc != null;
         } catch (Exception e) {
-            String operation = removePrevious ? "update" : "insert";
+            String operation = hasPrevious ? "update" : "insert";
             throw new SpaceRuntimeException("Failed to " + operation + " entry of type " + typeName + " with id [" + entry.getUid() + "]", e);
         }
     }
@@ -127,9 +127,9 @@ public class LuceneSpatialQueryExtensionIndexManager extends QueryExtensionIndex
     }
 
     @Override
-    public QueryExtensionIndexEntryIterator scanIndex(String typeName, String path, String operationName, Object operand) {
+    public QueryExtensionIndexEntryIterator query(String typeName, String path, String operationName, Object operand) {
         if (_logger.isLoggable(Level.FINE))
-            _logger.log(Level.FINE, "scanIndex [typeName=" + typeName + ", path=" + path + ", operation=" + operationName + ", operand=" + operand + "]");
+            _logger.log(Level.FINE, "query [typeName=" + typeName + ", path=" + path + ", operation=" + operationName + ", operand=" + operand + "]");
 
         final SpatialStrategy spatialStrategy = _luceneConfiguration.getStrategy(path);
         final Query query = spatialStrategy.makeQuery(new SpatialArgs(toOperation(operationName), toShape(operand)));
