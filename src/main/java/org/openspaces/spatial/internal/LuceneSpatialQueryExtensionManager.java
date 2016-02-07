@@ -44,8 +44,8 @@ import java.util.logging.Logger;
  * @author yechielf
  * @since 11.0
  */
-public class LuceneSpatialQueryExtensionIndexManager extends QueryExtensionIndexManager {
-    private static final Logger _logger = Logger.getLogger(LuceneSpatialQueryExtensionIndexManager.class.getName());
+public class LuceneSpatialQueryExtensionManager extends QueryExtensionManager {
+    private static final Logger _logger = Logger.getLogger(LuceneSpatialQueryExtensionManager.class.getName());
 
     protected static final String XAP_ID = "XAP_ID";
     private static final String XAP_ID_VERSION = "XAP_ID_VERSION";
@@ -56,7 +56,7 @@ public class LuceneSpatialQueryExtensionIndexManager extends QueryExtensionIndex
     private final String _namespace;
     private final LuceneConfiguration _luceneConfiguration;
 
-    public LuceneSpatialQueryExtensionIndexManager(QueryExtensionIndexManagerConfig config) {
+    public LuceneSpatialQueryExtensionManager(QueryExtensionManagerConfig config) {
         super(config);
         _namespace = config.getNamespace();
         _luceneConfiguration = new LuceneConfiguration(config);
@@ -127,7 +127,7 @@ public class LuceneSpatialQueryExtensionIndexManager extends QueryExtensionIndex
     }
 
     @Override
-    public QueryExtensionIndexEntryIterator query(String typeName, String path, String operationName, Object operand) {
+    public QueryExtensionEntryIterator query(String typeName, String path, String operationName, Object operand) {
         if (_logger.isLoggable(Level.FINE))
             _logger.log(Level.FINE, "query [typeName=" + typeName + ", path=" + path + ", operation=" + operationName + ", operand=" + operand + "]");
 
@@ -142,7 +142,7 @@ public class LuceneSpatialQueryExtensionIndexManager extends QueryExtensionIndex
             IndexSearcher is = new IndexSearcher(dr);
             ScoreDoc[] scores = is.search(query, MAX_RESULTS).scoreDocs;
             String alreadyMatchedIndexPath = _luceneConfiguration.rematchAlreadyMatchedIndexPath(path) ? null : path;
-            return new LuceneSpatialQueryIndexIterator(this, alreadyMatchedIndexPath, scores, is, dr);
+            return new LuceneSpatialQueryIterator(this, alreadyMatchedIndexPath, scores, is, dr);
         } catch (IOException e) {
             throw new SpaceRuntimeException("Failed to scan index", e);
         }

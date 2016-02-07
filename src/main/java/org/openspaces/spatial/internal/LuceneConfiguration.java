@@ -17,7 +17,7 @@
  ******************************************************************************/
 package org.openspaces.spatial.internal;
 
-import com.gigaspaces.query.extension.index.QueryExtensionIndexManagerConfig;
+import com.gigaspaces.query.extension.index.QueryExtensionManagerConfig;
 import com.spatial4j.core.context.SpatialContext;
 import com.spatial4j.core.context.SpatialContextFactory;
 import com.spatial4j.core.context.jts.JtsSpatialContext;
@@ -131,7 +131,7 @@ public class LuceneConfiguration {
         }
     }
 
-    public LuceneConfiguration(QueryExtensionIndexManagerConfig config) {
+    public LuceneConfiguration(QueryExtensionManagerConfig config) {
         this._spatialContext = createSpatialContext(config);
         this._strategyFactory = createStrategyFactory(config);
         this._directoryFactory = createDirectoryFactory(config);
@@ -140,7 +140,7 @@ public class LuceneConfiguration {
         this._maxUncommittedChanges = 1000;
     }
 
-    private static RectangleImpl createSpatialContextWorldBounds(QueryExtensionIndexManagerConfig config)  {
+    private static RectangleImpl createSpatialContextWorldBounds(QueryExtensionManagerConfig config)  {
         String spatialContextWorldBounds = config.getSpaceProperty(SPATIAL_CONTEXT_WORLD_BOUNDS, null);
         if (spatialContextWorldBounds == null)
             return null;
@@ -167,7 +167,7 @@ public class LuceneConfiguration {
         return new RectangleImpl(minX, maxX, minY, maxY, null);
     }
 
-    private static SpatialContext createSpatialContext(QueryExtensionIndexManagerConfig config) {
+    private static SpatialContext createSpatialContext(QueryExtensionManagerConfig config) {
         String spatialContextString = config.getSpaceProperty(SPATIAL_CONTEXT, SPATIAL_CONTEXT_DEFAULT);
         SupportedSpatialContext spatialContext = SupportedSpatialContext.byName(spatialContextString);
         boolean geo = Boolean.valueOf(config.getSpaceProperty(SPATIAL_CONTEXT_GEO, SPATIAL_CONTEXT_GEO_DEFAULT));
@@ -193,7 +193,7 @@ public class LuceneConfiguration {
         }
     }
 
-    protected StrategyFactory createStrategyFactory(QueryExtensionIndexManagerConfig config) {
+    protected StrategyFactory createStrategyFactory(QueryExtensionManagerConfig config) {
         String strategyString = config.getSpaceProperty(STRATEGY, STRATEGY_DEFAULT);
         SupportedSpatialStrategy spatialStrategy = SupportedSpatialStrategy.byName(strategyString);
 
@@ -240,7 +240,7 @@ public class LuceneConfiguration {
         }
     }
 
-    private static SpatialPrefixTree createSpatialPrefixTree(QueryExtensionIndexManagerConfig config, SpatialContext spatialContext) {
+    private static SpatialPrefixTree createSpatialPrefixTree(QueryExtensionManagerConfig config, SpatialContext spatialContext) {
         String spatialPrefixTreeType = config.getSpaceProperty(SPATIAL_PREFIX_TREE, SPATIAL_PREFIX_TREE_DEFAULT);
 
         SupportedSpatialPrefixTree spatialPrefixTree = SupportedSpatialPrefixTree.byName(spatialPrefixTreeType);
@@ -257,7 +257,7 @@ public class LuceneConfiguration {
         }
     }
 
-    private static String initLocation(QueryExtensionIndexManagerConfig config) {
+    private static String initLocation(QueryExtensionManagerConfig config) {
         //try space-config.spatial.lucene.storage.location first, if not configured then use workingDir.
         //If workingDir == null (Embedded space , Integrated PU , etc...) then use process working dir (user.dir)
         String location = config.getSpaceProperty(STORAGE_LOCATION, null);
@@ -271,7 +271,7 @@ public class LuceneConfiguration {
         return location + FILE_SEPARATOR + spaceInstanceName;
     }
 
-    protected DirectoryFactory createDirectoryFactory(QueryExtensionIndexManagerConfig config) {
+    protected DirectoryFactory createDirectoryFactory(QueryExtensionManagerConfig config) {
         String directoryType = config.getSpaceProperty(STORAGE_DIRECTORYTYPE, STORAGE_DIRECTORYTYPE_DEFAULT);
         SupportedDirectory directory = SupportedDirectory.byName(directoryType);
 

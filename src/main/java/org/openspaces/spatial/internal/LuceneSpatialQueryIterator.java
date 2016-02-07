@@ -18,8 +18,8 @@
 package org.openspaces.spatial.internal;
 
 import com.gigaspaces.SpaceRuntimeException;
-import com.gigaspaces.query.extension.index.QueryExtensionIndexEntryIterator;
-import com.gigaspaces.query.extension.index.QueryExtensionIndexManager;
+import com.gigaspaces.query.extension.index.QueryExtensionEntryIterator;
+import com.gigaspaces.query.extension.index.QueryExtensionManager;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.search.IndexSearcher;
@@ -31,14 +31,14 @@ import java.io.IOException;
  * @author yechielf
  * @since 11.0
  */
-public class LuceneSpatialQueryIndexIterator extends QueryExtensionIndexEntryIterator {
+public class LuceneSpatialQueryIterator extends QueryExtensionEntryIterator {
     private final ScoreDoc[] scores;
     private final IndexSearcher indexSearcher;
     private final DirectoryReader directoryReader;
     private int _pos;
 
-    public LuceneSpatialQueryIndexIterator(QueryExtensionIndexManager indexManager, String alreadyMatchedIndexPath,
-                                           ScoreDoc[] scores, IndexSearcher is, DirectoryReader directoryReader) {
+    public LuceneSpatialQueryIterator(QueryExtensionManager indexManager, String alreadyMatchedIndexPath,
+                                      ScoreDoc[] scores, IndexSearcher is, DirectoryReader directoryReader) {
         super(indexManager, alreadyMatchedIndexPath);
         this.scores = scores;
         this.indexSearcher = is;
@@ -59,7 +59,7 @@ public class LuceneSpatialQueryIndexIterator extends QueryExtensionIndexEntryIte
     public String nextUid() {
         try {
             Document d = indexSearcher.doc(scores[_pos++].doc);
-            return d.get(LuceneSpatialQueryExtensionIndexManager.XAP_ID);
+            return d.get(LuceneSpatialQueryExtensionManager.XAP_ID);
         } catch (IOException e) {
             throw new SpaceRuntimeException("Failed to get next item", e);
         }

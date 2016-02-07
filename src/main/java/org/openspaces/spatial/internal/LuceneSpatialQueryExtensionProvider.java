@@ -17,9 +17,9 @@
  ******************************************************************************/
 package org.openspaces.spatial.internal;
 
-import com.gigaspaces.query.extension.index.QueryExtensionIndexManager;
+import com.gigaspaces.query.extension.index.QueryExtensionManager;
 import com.gigaspaces.query.extension.QueryExtensionProvider;
-import com.gigaspaces.query.extension.index.QueryExtensionIndexManagerConfig;
+import com.gigaspaces.query.extension.index.QueryExtensionManagerConfig;
 import com.gigaspaces.query.extension.metadata.PathQueryExtension;
 import org.openspaces.spatial.SpaceSpatialIndex;
 import org.openspaces.spatial.SpaceSpatialIndexes;
@@ -40,8 +40,8 @@ public class LuceneSpatialQueryExtensionProvider extends QueryExtensionProvider 
     }
 
     @Override
-    public QueryExtensionIndexManager createIndexManager(QueryExtensionIndexManagerConfig config) {
-        return new LuceneSpatialQueryExtensionIndexManager(config);
+    public QueryExtensionManager createManager(QueryExtensionManagerConfig config) {
+        return new LuceneSpatialQueryExtensionManager(config);
     }
 
     @Override

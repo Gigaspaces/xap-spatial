@@ -1,6 +1,6 @@
 package org.openspaces.spatial.internal;
 
-import com.gigaspaces.query.extension.index.QueryExtensionIndexManagerConfig;
+import com.gigaspaces.query.extension.index.QueryExtensionManagerConfig;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 import org.openspaces.spatial.shapes.Polygon;
@@ -19,17 +19,17 @@ import static org.openspaces.spatial.ShapeFactory.polygon;
  */
 public class LuceneSpatialQueryExtensionIndexManagerTest {
 
-    private LuceneSpatialQueryExtensionIndexManager _handler;
+    private LuceneSpatialQueryExtensionManager _handler;
 
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     @Before
     public void setup() throws Exception {
-        QueryExtensionIndexManagerConfig config = new QueryExtensionIndexManagerConfig()
+        QueryExtensionManagerConfig config = new QueryExtensionManagerConfig()
                 .setNamespace("spatial")
                 .setFullSpaceName("dummy");
-        _handler = new LuceneSpatialQueryExtensionIndexManager(config);
+        _handler = new LuceneSpatialQueryExtensionManager(config);
     }
 
     @Test
