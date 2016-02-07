@@ -44,7 +44,7 @@ import java.util.Arrays;
  * @author Yohana Khoury
  * @since 11.0
  */
-public class LuceneConfiguration {
+public class LuceneSpatialConfiguration {
     public static final String FILE_SEPARATOR = File.separator;
     public static final String SPATIAL_PREFIX = "spatial";
 
@@ -131,7 +131,7 @@ public class LuceneConfiguration {
         }
     }
 
-    public LuceneConfiguration(QueryExtensionManagerConfig config) {
+    public LuceneSpatialConfiguration(QueryExtensionManagerConfig config) {
         this._spatialContext = createSpatialContext(config);
         this._strategyFactory = createStrategyFactory(config);
         this._directoryFactory = createDirectoryFactory(config);

@@ -57,12 +57,12 @@ public class LuceneSpatialQueryExtensionManager extends QueryExtensionManager {
 
     private final Map<String, LuceneSpatialTypeIndex> _luceneHolderMap = new ConcurrentHashMap<String, LuceneSpatialTypeIndex>();
     private final String _namespace;
-    private final LuceneConfiguration _luceneConfiguration;
+    private final LuceneSpatialConfiguration _luceneConfiguration;
 
     public LuceneSpatialQueryExtensionManager(QueryExtensionManagerConfig config) {
         super(config);
         _namespace = config.getNamespace();
-        _luceneConfiguration = new LuceneConfiguration(config);
+        _luceneConfiguration = new LuceneSpatialConfiguration(config);
         File location = new File(_luceneConfiguration.getLocation());
         if (location.exists())
             FileUtils.deleteFileOrDirectory(location);
