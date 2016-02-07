@@ -145,7 +145,7 @@ public class LuceneSpatialQueryExtensionManager extends QueryExtensionManager {
             IndexSearcher is = new IndexSearcher(dr);
             ScoreDoc[] scores = is.search(query, MAX_RESULTS).scoreDocs;
             String alreadyMatchedIndexPath = _luceneConfiguration.rematchAlreadyMatchedIndexPath(path) ? null : path;
-            return new LuceneSpatialQueryIterator(this, alreadyMatchedIndexPath, scores, is, dr);
+            return new LuceneSpatialQueryExtensionEntryIterator(scores, is, dr, alreadyMatchedIndexPath);
         } catch (IOException e) {
             throw new SpaceRuntimeException("Failed to scan index", e);
         }
