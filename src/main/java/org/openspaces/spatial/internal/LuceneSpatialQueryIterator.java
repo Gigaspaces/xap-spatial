@@ -18,8 +18,8 @@
 package org.openspaces.spatial.internal;
 
 import com.gigaspaces.SpaceRuntimeException;
-import com.gigaspaces.query.extension.index.QueryExtensionEntryIterator;
-import com.gigaspaces.query.extension.index.QueryExtensionManager;
+import com.gigaspaces.query.extension.QueryExtensionEntryIterator;
+import com.gigaspaces.query.extension.QueryExtensionManager;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.search.IndexSearcher;

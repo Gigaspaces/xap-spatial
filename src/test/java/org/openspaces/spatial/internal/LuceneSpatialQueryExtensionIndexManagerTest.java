@@ -1,6 +1,6 @@
 package org.openspaces.spatial.internal;
 
-import com.gigaspaces.query.extension.index.QueryExtensionManagerConfig;
+import com.gigaspaces.query.extension.QueryExtensionManagerConfig;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 import org.openspaces.spatial.shapes.Polygon;

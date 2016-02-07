@@ -17,7 +17,7 @@
  ******************************************************************************/
 package org.openspaces.spatial.internal;
 
-import com.gigaspaces.query.extension.index.QueryExtensionManagerConfig;
+import com.gigaspaces.query.extension.QueryExtensionManagerConfig;
 import com.spatial4j.core.context.SpatialContext;
 import com.spatial4j.core.context.SpatialContextFactory;
 import com.spatial4j.core.context.jts.JtsSpatialContext;

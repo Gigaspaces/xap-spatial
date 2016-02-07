@@ -17,9 +17,9 @@
  ******************************************************************************/
 package org.openspaces.spatial.internal;
 
-import com.gigaspaces.query.extension.index.QueryExtensionManager;
+import com.gigaspaces.query.extension.QueryExtensionManager;
 import com.gigaspaces.query.extension.QueryExtensionProvider;
-import com.gigaspaces.query.extension.index.QueryExtensionManagerConfig;
+import com.gigaspaces.query.extension.QueryExtensionManagerConfig;
 import com.gigaspaces.query.extension.metadata.PathQueryExtension;
 import org.openspaces.spatial.SpaceSpatialIndex;
 import org.openspaces.spatial.SpaceSpatialIndexes;
