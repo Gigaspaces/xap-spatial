@@ -19,7 +19,7 @@ package org.openspaces.spatial.internal;
 
 import com.gigaspaces.SpaceRuntimeException;
 import com.gigaspaces.metadata.SpaceTypeDescriptor;
-import com.gigaspaces.query.extension.IndexableServerEntry;
+import com.gigaspaces.server.SpaceServerEntry;
 import com.gigaspaces.query.extension.QueryExtensionEntryIterator;
 import com.gigaspaces.query.extension.QueryExtensionManager;
 import com.gigaspaces.query.extension.QueryExtensionManagerConfig;
@@ -94,7 +94,7 @@ public class LuceneSpatialQueryExtensionManager extends QueryExtensionManager {
     }
 
     @Override
-    public boolean insertEntry(IndexableServerEntry entry, boolean hasPrevious) {
+    public boolean insertEntry(SpaceServerEntry entry, boolean hasPrevious) {
         final String typeName = entry.getSpaceTypeDescriptor().getTypeName();
         final LuceneSpatialTypeIndex luceneHolder = _luceneHolderMap.get(typeName);
         try {
@@ -159,7 +159,7 @@ public class LuceneSpatialQueryExtensionManager extends QueryExtensionManager {
         return toOperation(operationName).evaluate(toShape(leftOperand), toShape(rightOperand));
     }
 
-    protected Document createDocumentIfNeeded(LuceneSpatialTypeIndex luceneHolder, IndexableServerEntry entry) {
+    protected Document createDocumentIfNeeded(LuceneSpatialTypeIndex luceneHolder, SpaceServerEntry entry) {
 
         Document doc = null;
         for (String path : luceneHolder.getQueryExtensionInfo().getPaths()) {
