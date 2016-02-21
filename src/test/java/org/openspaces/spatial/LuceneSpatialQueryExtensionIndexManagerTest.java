@@ -1,4 +1,4 @@
-package org.openspaces.spatial.internal;
+package org.openspaces.spatial;
 
 import com.gigaspaces.query.extension.QueryExtensionManagerConfig;
 import org.junit.Rule;
