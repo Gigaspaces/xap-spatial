@@ -48,7 +48,7 @@ public class LuceneSpatialQueryExtensionProvider extends QueryExtensionProvider 
     }
 
     @Override
-    public QueryExtensionPropertyInfo getPropertyAnnotationInfo(String property, Annotation annotation) {
+    public QueryExtensionPropertyInfo getPropertyExtensionInfo(String property, Annotation annotation) {
         QueryExtensionPropertyInfo result = new QueryExtensionPropertyInfo();
         if (annotation instanceof SpaceSpatialIndex) {
             SpaceSpatialIndex index = (SpaceSpatialIndex) annotation;
