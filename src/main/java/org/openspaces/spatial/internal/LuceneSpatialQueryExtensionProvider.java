@@ -20,7 +20,8 @@ package org.openspaces.spatial.internal;
 import com.gigaspaces.query.extension.QueryExtensionManager;
 import com.gigaspaces.query.extension.QueryExtensionProvider;
 import com.gigaspaces.query.extension.QueryExtensionManagerConfig;
-import com.gigaspaces.query.extension.metadata.PathQueryExtension;
+import com.gigaspaces.query.extension.metadata.DefaultQueryExtensionPathInfo;
+import com.gigaspaces.query.extension.metadata.QueryExtensionPathInfo;
 import org.openspaces.spatial.SpaceSpatialIndex;
 import org.openspaces.spatial.SpaceSpatialIndexes;
 
@@ -45,15 +46,15 @@ public class LuceneSpatialQueryExtensionProvider extends QueryExtensionProvider 
     }
 
     @Override
-    public Map<String, PathQueryExtension> toPropertyInfo(String property, Annotation annotation) {
-        Map<String, PathQueryExtension> result = new HashMap<String, PathQueryExtension>();
+    public Map<String, QueryExtensionPathInfo> getPropertyAnnotationInfo(String property, Annotation annotation) {
+        Map<String, QueryExtensionPathInfo> result = new HashMap<String, QueryExtensionPathInfo>();
         if (annotation instanceof SpaceSpatialIndex) {
             SpaceSpatialIndex index = (SpaceSpatialIndex) annotation;
-            result.put(path(property, index), new PathQueryExtension());
+            result.put(path(property, index), new DefaultQueryExtensionPathInfo());
         } else if (annotation instanceof SpaceSpatialIndexes) {
             SpaceSpatialIndex[] indexes = ((SpaceSpatialIndexes)annotation).value();
             for (SpaceSpatialIndex index : indexes)
-                result.put(path(property, index), new PathQueryExtension());
+                result.put(path(property, index), new DefaultQueryExtensionPathInfo());
         }
         return result;
     }
