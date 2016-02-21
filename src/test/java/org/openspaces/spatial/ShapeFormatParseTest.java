@@ -3,7 +3,6 @@ package org.openspaces.spatial;
 import org.junit.Assert;
 import org.junit.Test;
 import org.openspaces.spatial.shapes.Shape;
-import org.openspaces.spatial.shapes.ShapeFormat;
 
 import static org.openspaces.spatial.ShapeFactory.*;
 

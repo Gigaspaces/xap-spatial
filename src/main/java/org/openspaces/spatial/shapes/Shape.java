@@ -17,6 +17,8 @@
  ******************************************************************************/
 package org.openspaces.spatial.shapes;
 
+import org.openspaces.spatial.ShapeFormat;
+
 import java.io.Serializable;
 
 /**

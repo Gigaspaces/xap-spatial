@@ -15,7 +15,7 @@
  * limitations under the License.
  *
  ******************************************************************************/
-package org.openspaces.spatial.shapes;
+package org.openspaces.spatial;
 
 /**
  * Encapsulates Shape formats supported by XAP GeoSpatial API

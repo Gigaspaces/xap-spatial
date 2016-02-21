@@ -22,7 +22,7 @@ import com.spatial4j.core.shape.Shape;
 import com.spatial4j.core.shape.impl.BufferedLineString;
 import org.openspaces.spatial.shapes.LineString;
 import org.openspaces.spatial.shapes.Point;
-import org.openspaces.spatial.shapes.ShapeFormat;
+import org.openspaces.spatial.ShapeFormat;
 import org.openspaces.spatial.spatial4j.Spatial4jShapeProvider;
 
 import java.io.Externalizable;
