@@ -15,7 +15,7 @@
  * limitations under the License.
  *
  ******************************************************************************/
-package org.openspaces.spatial.internal.shapes;
+package org.openspaces.spatial.shapes.impl;
 
 import org.openspaces.spatial.shapes.Circle;
 import org.openspaces.spatial.shapes.ShapeFormat;

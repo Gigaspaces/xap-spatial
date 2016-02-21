@@ -15,9 +15,9 @@
  * limitations under the License.
  *
  ******************************************************************************/
-package org.openspaces.spatial.internal.shapes;
+package org.openspaces.spatial.shapes.impl;
 
-import org.openspaces.spatial.shapes.Rectangle;
+import org.openspaces.spatial.shapes.Point;
 import org.openspaces.spatial.shapes.ShapeFormat;
 import com.spatial4j.core.context.SpatialContext;
 import com.spatial4j.core.shape.Shape;
@@ -29,52 +29,32 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 /**
- * @author Yohana Khoury
+ * @author Barak Bar Orion
  * @since 11.0
  */
-public class RectangleImpl implements Rectangle, Spatial4jShapeProvider, Externalizable {
-
+public class PointImpl implements Point, Spatial4jShapeProvider, Externalizable {
     private static final long serialVersionUID = 1L;
 
-    private double minX;
-    private double maxX;
-    private double minY;
-    private double maxY;
+    private double x;
+    private double y;
     private volatile transient com.spatial4j.core.shape.Shape spatial4jShape;
 
-    public RectangleImpl() {
+    public PointImpl() {
     }
 
-    public RectangleImpl(double minX, double maxX, double minY, double maxY) {
-        this.minX = minX;
-        this.maxX = maxX;
-        this.minY = minY;
-        this.maxY = maxY;
-    }
-
-    @Override
-    public double getMinX() {
-        return minX;
+    public PointImpl(double x, double y) {
+        this.x = x;
+        this.y = y;
     }
 
     @Override
-    public double getMinY() {
-        return minY;
+    public double getX() {
+        return x;
     }
 
     @Override
-    public double getMaxX() {
-        return maxX;
-    }
-
-    @Override
-    public double getMaxY() {
-        return maxY;
-    }
-
-    @Override
-    public String toString() {
-        return toString(ShapeFormat.WKT);
+    public double getY() {
+        return y;
     }
 
     @Override
@@ -91,39 +71,21 @@ public class RectangleImpl implements Rectangle, Spatial4jShapeProvider, Externa
         }
     }
 
-    private StringBuilder appendGeoJson(StringBuilder stringBuilder) {
-        stringBuilder.append("{\"type\":\"Polygon\",\"coordinates\": [[");
-        appendTuple(stringBuilder, minX, minY);
-        stringBuilder.append(',');
-        appendTuple(stringBuilder, minX, maxY);
-        stringBuilder.append(',');
-        appendTuple(stringBuilder, maxX, maxY);
-        stringBuilder.append(',');
-        appendTuple(stringBuilder, maxX, minY);
-        stringBuilder.append(',');
-        appendTuple(stringBuilder, minX, minY);
-        stringBuilder.append("]]}");
+    private StringBuilder appendWkt(StringBuilder stringBuilder) {
+        stringBuilder.append("POINT (");
+        stringBuilder.append(x);
+        stringBuilder.append(' ');
+        stringBuilder.append(y);
+        stringBuilder.append(')');
         return stringBuilder;
     }
 
-    private static void appendTuple(StringBuilder stringBuilder, double x, double y) {
-        stringBuilder.append('[');
+    private StringBuilder appendGeoJson(StringBuilder stringBuilder) {
+        stringBuilder.append("{\"type\":\"Point\",\"coordinates\":[");
         stringBuilder.append(x);
         stringBuilder.append(',');
         stringBuilder.append(y);
-        stringBuilder.append(']');
-    }
-
-    private StringBuilder appendWkt(StringBuilder stringBuilder) {
-        stringBuilder.append("ENVELOPE (");
-        stringBuilder.append(minX);
-        stringBuilder.append(", ");
-        stringBuilder.append(maxX);
-        stringBuilder.append(", ");
-        stringBuilder.append(maxY);
-        stringBuilder.append(", ");
-        stringBuilder.append(minY);
-        stringBuilder.append(')');
+        stringBuilder.append("]}");
         return stringBuilder;
     }
 
@@ -131,10 +93,15 @@ public class RectangleImpl implements Rectangle, Spatial4jShapeProvider, Externa
     public Shape getSpatial4jShape(SpatialContext spatialContext) {
         com.spatial4j.core.shape.Shape result = this.spatial4jShape;
         if (result == null) {
-            result = spatialContext.makeRectangle(minX, maxX, minY, maxY);
+            result = spatialContext.makePoint(x, y);
             this.spatial4jShape = result;
         }
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return toString(ShapeFormat.WKT);
     }
 
     @Override
@@ -142,11 +109,9 @@ public class RectangleImpl implements Rectangle, Spatial4jShapeProvider, Externa
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Rectangle other = (Rectangle) o;
-        if (this.minX != other.getMinX()) return false;
-        if (this.maxX != other.getMaxX()) return false;
-        if (this.minY != other.getMinY()) return false;
-        if (this.maxY != other.getMaxY()) return false;
+        Point other = (Point) o;
+        if (Double.compare(this.x, other.getX()) != 0) return false;
+        if (Double.compare(this.y, other.getY()) != 0) return false;
 
         return true;
     }
@@ -155,30 +120,22 @@ public class RectangleImpl implements Rectangle, Spatial4jShapeProvider, Externa
     public int hashCode() {
         int result;
         long temp;
-        temp = Double.doubleToLongBits(minX);
+        temp = Double.doubleToLongBits(x);
         result = (int) (temp ^ (temp >>> 32));
-        temp = Double.doubleToLongBits(maxX);
-        result = 31 * result + (int) (temp ^ (temp >>> 32));
-        temp = Double.doubleToLongBits(minY);
-        result = 31 * result + (int) (temp ^ (temp >>> 32));
-        temp = Double.doubleToLongBits(maxY);
+        temp = Double.doubleToLongBits(y);
         result = 31 * result + (int) (temp ^ (temp >>> 32));
         return result;
     }
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
-        out.writeDouble(minX);
-        out.writeDouble(maxX);
-        out.writeDouble(minY);
-        out.writeDouble(maxY);
+        out.writeDouble(x);
+        out.writeDouble(y);
     }
 
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        minX = in.readDouble();
-        maxX = in.readDouble();
-        minY = in.readDouble();
-        maxY = in.readDouble();
+        x = in.readDouble();
+        y = in.readDouble();
     }
 }

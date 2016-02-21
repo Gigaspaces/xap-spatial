@@ -19,7 +19,6 @@ package org.openspaces.spatial;
 
 import com.gigaspaces.internal.utils.Assert;
 import com.spatial4j.core.shape.jts.JtsGeometry;
-import org.openspaces.spatial.internal.shapes.*;
 import org.openspaces.spatial.shapes.*;
 import com.spatial4j.core.context.jts.JtsSpatialContext;
 import com.spatial4j.core.context.SpatialContext;
@@ -27,6 +26,7 @@ import org.openspaces.spatial.shapes.Circle;
 import org.openspaces.spatial.shapes.Point;
 import org.openspaces.spatial.shapes.Rectangle;
 import org.openspaces.spatial.shapes.Shape;
+import org.openspaces.spatial.shapes.impl.*;
 
 import java.io.IOException;
 import java.text.ParseException;
