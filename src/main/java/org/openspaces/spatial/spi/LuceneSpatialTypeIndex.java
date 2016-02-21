@@ -1,4 +1,4 @@
-package org.openspaces.spatial.internal;
+package org.openspaces.spatial.spi;
 
 import com.gigaspaces.metadata.SpaceTypeDescriptor;
 import com.gigaspaces.query.extension.metadata.TypeQueryExtension;

@@ -15,7 +15,7 @@
  * limitations under the License.
  *
  ******************************************************************************/
-package org.openspaces.spatial.internal;
+package org.openspaces.spatial.spi;
 
 import com.gigaspaces.SpaceRuntimeException;
 import com.gigaspaces.metadata.SpaceTypeDescriptor;

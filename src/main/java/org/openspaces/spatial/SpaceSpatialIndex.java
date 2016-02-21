@@ -18,7 +18,7 @@
 package org.openspaces.spatial;
 
 import com.gigaspaces.query.extension.SpaceQueryExtension;
-import org.openspaces.spatial.internal.LuceneSpatialQueryExtensionProvider;
+import org.openspaces.spatial.spi.LuceneSpatialQueryExtensionProvider;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;

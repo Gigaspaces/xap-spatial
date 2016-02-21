@@ -15,6 +15,7 @@ import org.apache.lucene.store.MMapDirectory;
 import org.apache.lucene.store.RAMDirectory;
 import org.junit.*;
 import org.junit.rules.TemporaryFolder;
+import org.openspaces.spatial.spi.LuceneSpatialConfiguration;
 
 import java.io.File;
 import java.io.IOException;

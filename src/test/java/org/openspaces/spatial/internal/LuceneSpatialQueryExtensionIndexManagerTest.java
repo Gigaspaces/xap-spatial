@@ -8,6 +8,7 @@ import com.spatial4j.core.shape.Shape;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.openspaces.spatial.spi.LuceneSpatialQueryExtensionManager;
 
 import static org.openspaces.spatial.ShapeFactory.point;
 import static org.openspaces.spatial.ShapeFactory.polygon;
