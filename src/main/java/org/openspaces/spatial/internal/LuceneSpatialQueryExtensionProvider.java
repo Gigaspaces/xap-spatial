@@ -21,13 +21,11 @@ import com.gigaspaces.query.extension.QueryExtensionManager;
 import com.gigaspaces.query.extension.QueryExtensionProvider;
 import com.gigaspaces.query.extension.QueryExtensionManagerConfig;
 import com.gigaspaces.query.extension.metadata.DefaultQueryExtensionPathInfo;
-import com.gigaspaces.query.extension.metadata.QueryExtensionPathInfo;
+import com.gigaspaces.query.extension.metadata.QueryExtensionPropertyInfo;
 import org.openspaces.spatial.SpaceSpatialIndex;
 import org.openspaces.spatial.SpaceSpatialIndexes;
 
 import java.lang.annotation.Annotation;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author Niv Ingberg
@@ -45,21 +43,21 @@ public class LuceneSpatialQueryExtensionProvider extends QueryExtensionProvider 
         return new LuceneSpatialQueryExtensionManager(config);
     }
 
+    private static String path(String property, SpaceSpatialIndex index) {
+        return index.path().length() == 0 ? property : property + "." + index.path();
+    }
+
     @Override
-    public Map<String, QueryExtensionPathInfo> getPropertyAnnotationInfo(String property, Annotation annotation) {
-        Map<String, QueryExtensionPathInfo> result = new HashMap<String, QueryExtensionPathInfo>();
+    public QueryExtensionPropertyInfo getPropertyAnnotationInfo(String property, Annotation annotation) {
+        QueryExtensionPropertyInfo result = new QueryExtensionPropertyInfo();
         if (annotation instanceof SpaceSpatialIndex) {
             SpaceSpatialIndex index = (SpaceSpatialIndex) annotation;
-            result.put(path(property, index), new DefaultQueryExtensionPathInfo());
+            result.addPathInfo(path(property, index), new DefaultQueryExtensionPathInfo());
         } else if (annotation instanceof SpaceSpatialIndexes) {
             SpaceSpatialIndex[] indexes = ((SpaceSpatialIndexes)annotation).value();
             for (SpaceSpatialIndex index : indexes)
-                result.put(path(property, index), new DefaultQueryExtensionPathInfo());
+                result.addPathInfo(path(property, index), new DefaultQueryExtensionPathInfo());
         }
         return result;
-    }
-
-    private static String path(String property, SpaceSpatialIndex index) {
-        return index.path().length() == 0 ? property : property + "." + index.path();
     }
 }
