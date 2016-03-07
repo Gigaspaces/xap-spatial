@@ -318,11 +318,6 @@ public class LuceneSpatialConfiguration {
         return _location;
     }
 
-    public boolean rematchAlreadyMatchedIndexPath(String path) {
-        //always return true for now, should be: return _strategyFactory.getStrategyName().equals(SupportedSpatialStrategy.CompositeSpatialStrategy);
-        return true;
-    }
-
     public abstract class StrategyFactory {
         private SupportedSpatialStrategy _strategyName;
 

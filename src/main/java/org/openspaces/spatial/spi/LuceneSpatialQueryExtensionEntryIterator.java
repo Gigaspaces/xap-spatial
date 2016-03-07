@@ -34,26 +34,18 @@ public class LuceneSpatialQueryExtensionEntryIterator extends QueryExtensionEntr
     private final ScoreDoc[] scores;
     private final IndexSearcher indexSearcher;
     private final DirectoryReader directoryReader;
-    private final String prematchedPath;
     private int position;
 
-    public LuceneSpatialQueryExtensionEntryIterator(ScoreDoc[] scores, IndexSearcher indexSearcher, DirectoryReader directoryReader,
-                                                    String prematchedPath) {
+    public LuceneSpatialQueryExtensionEntryIterator(ScoreDoc[] scores, IndexSearcher indexSearcher, DirectoryReader directoryReader) {
         this.scores = scores;
         this.indexSearcher = indexSearcher;
         this.directoryReader = directoryReader;
-        this.prematchedPath = prematchedPath;
     }
 
     @Override
     public void close() throws IOException {
         directoryReader.close();
         super.close();
-    }
-
-    @Override
-    public String getPrematchedPath() {
-        return prematchedPath;
     }
 
     @Override

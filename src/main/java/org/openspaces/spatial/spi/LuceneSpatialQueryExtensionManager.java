@@ -144,8 +144,7 @@ public class LuceneSpatialQueryExtensionManager extends QueryExtensionManager {
             DirectoryReader dr = DirectoryReader.open(luceneHolder.getDirectory());
             IndexSearcher is = new IndexSearcher(dr);
             ScoreDoc[] scores = is.search(query, MAX_RESULTS).scoreDocs;
-            String prematchedPath = _luceneConfiguration.rematchAlreadyMatchedIndexPath(path) ? null : path;
-            return new LuceneSpatialQueryExtensionEntryIterator(scores, is, dr, prematchedPath);
+            return new LuceneSpatialQueryExtensionEntryIterator(scores, is, dr);
         } catch (IOException e) {
             throw new SpaceRuntimeException("Failed to scan index", e);
         }
