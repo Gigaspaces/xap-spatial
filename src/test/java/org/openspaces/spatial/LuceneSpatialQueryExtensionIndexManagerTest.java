@@ -9,6 +9,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.openspaces.spatial.spi.LuceneSpatialQueryExtensionManager;
+import org.openspaces.spatial.spi.LuceneSpatialQueryExtensionProvider;
 
 import static org.openspaces.spatial.ShapeFactory.point;
 import static org.openspaces.spatial.ShapeFactory.polygon;
@@ -28,9 +29,8 @@ public class LuceneSpatialQueryExtensionIndexManagerTest {
     @Before
     public void setup() throws Exception {
         QueryExtensionManagerConfig config = new QueryExtensionManagerConfig()
-                .setNamespace("spatial")
                 .setFullSpaceName("dummy");
-        _handler = new LuceneSpatialQueryExtensionManager(config);
+        _handler = new LuceneSpatialQueryExtensionManager(new LuceneSpatialQueryExtensionProvider(), config);
     }
 
     @Test

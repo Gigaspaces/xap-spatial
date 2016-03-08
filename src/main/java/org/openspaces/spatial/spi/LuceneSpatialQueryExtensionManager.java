@@ -59,9 +59,9 @@ public class LuceneSpatialQueryExtensionManager extends QueryExtensionManager {
     private final String _namespace;
     private final LuceneSpatialConfiguration _luceneConfiguration;
 
-    public LuceneSpatialQueryExtensionManager(QueryExtensionManagerConfig config) {
+    public LuceneSpatialQueryExtensionManager(LuceneSpatialQueryExtensionProvider provider, QueryExtensionManagerConfig config) {
         super(config);
-        _namespace = config.getNamespace();
+        _namespace = provider.getNamespace();
         _luceneConfiguration = new LuceneSpatialConfiguration(config);
         File location = new File(_luceneConfiguration.getLocation());
         if (location.exists())

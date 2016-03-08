@@ -40,7 +40,7 @@ public class LuceneSpatialQueryExtensionProvider extends QueryExtensionProvider 
 
     @Override
     public QueryExtensionManager createManager(QueryExtensionManagerConfig config) {
-        return new LuceneSpatialQueryExtensionManager(config);
+        return new LuceneSpatialQueryExtensionManager(this, config);
     }
 
     private static String path(String property, SpaceSpatialIndex index) {
