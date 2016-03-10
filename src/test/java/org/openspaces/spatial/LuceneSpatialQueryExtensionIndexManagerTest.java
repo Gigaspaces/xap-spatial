@@ -1,6 +1,6 @@
 package org.openspaces.spatial;
 
-import com.gigaspaces.query.extension.QueryExtensionManagerConfig;
+import com.gigaspaces.query.extension.QueryExtensionRuntimeInfo;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 import org.openspaces.spatial.shapes.Polygon;
@@ -28,8 +28,22 @@ public class LuceneSpatialQueryExtensionIndexManagerTest {
 
     @Before
     public void setup() throws Exception {
-        QueryExtensionManagerConfig config = new QueryExtensionManagerConfig()
-                .setFullSpaceName("dummy");
+        QueryExtensionRuntimeInfo config = new QueryExtensionRuntimeInfo() {
+            @Override
+            public String getSpaceInstanceName() {
+                return "dummy";
+            }
+
+            @Override
+            public String getSpaceInstanceWorkDirectory() {
+                return null;
+            }
+
+            @Override
+            public String getSpaceProperty(String key, String defaultValue) {
+                return defaultValue;
+            }
+        };
         _handler = new LuceneSpatialQueryExtensionManager(new LuceneSpatialQueryExtensionProvider(), config);
     }
 

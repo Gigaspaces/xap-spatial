@@ -1,6 +1,6 @@
 package org.openspaces.spatial;
 
-import com.gigaspaces.query.extension.QueryExtensionManagerConfig;
+import com.gigaspaces.query.extension.QueryExtensionRuntimeInfo;
 import com.spatial4j.core.context.SpatialContext;
 import com.spatial4j.core.context.jts.JtsSpatialContext;
 import com.spatial4j.core.shape.impl.RectangleImpl;
@@ -54,14 +54,14 @@ public class LuceneConfigurationTest {
 
     @Test
     public void testDefaults() throws IOException {
-        QueryExtensionManagerConfig config = new MockConfig()
+        QueryExtensionRuntimeInfo config = new MockConfig()
                 .setWorkDir(getWorkingDir());
         LuceneSpatialConfiguration luceneConfiguration = new LuceneSpatialConfiguration(config);
 
         //test directory
         Directory directory = luceneConfiguration.getDirectory("A");
         Assert.assertEquals("MMapDirectory should be the default directory", MMapDirectory.class, directory.getClass());
-        String expectedLocation = getWorkingDir()+ File.separator + "luceneIndex" + File.separator + config.getFullSpaceName();
+        String expectedLocation = getWorkingDir()+ File.separator + "spatial" + File.separator + config.getSpaceInstanceName();
         Assert.assertEquals("Default location", expectedLocation, luceneConfiguration.getLocation());
         Assert.assertEquals("MMapDirectory location should be workingDir/luceneIndex/A "+expectedLocation+"/A", new MMapDirectory(Paths.get(expectedLocation + "/A")).getDirectory(), ((MMapDirectory) directory).getDirectory());
 
@@ -83,7 +83,7 @@ public class LuceneConfigurationTest {
 
     @Test
     public void testInvalidDirectoryType() {
-        QueryExtensionManagerConfig config = new MockConfig()
+        QueryExtensionRuntimeInfo config = new MockConfig()
                 .setSpaceProperty("spatial.lucene.storage.directory-type", "A");
         try {
             new LuceneSpatialConfiguration(config);
@@ -96,7 +96,7 @@ public class LuceneConfigurationTest {
 
     @Test
     public void testRAMDirectoryTypeCaseInsensitive() throws IOException {
-        QueryExtensionManagerConfig config = new MockConfig()
+        QueryExtensionRuntimeInfo config = new MockConfig()
                 .setSpaceProperty("spatial.lucene.storage.directory-type", "Ramdirectory")
                 .setWorkDir(getWorkingDir());
 
@@ -108,7 +108,7 @@ public class LuceneConfigurationTest {
 
     @Test
     public void testMMapDirectoryTypeAndLocation() throws IOException {
-        QueryExtensionManagerConfig config = new MockConfig()
+        QueryExtensionRuntimeInfo config = new MockConfig()
                 .setSpaceProperty("spatial.lucene.storage.directory-type", "MMapDirectory")
                 .setSpaceProperty("spatial.lucene.storage.location", temporaryFolder.getRoot().getAbsolutePath() + "/tempdir")
                 .setWorkDir(getWorkingDir());
@@ -119,14 +119,14 @@ public class LuceneConfigurationTest {
         Assert.assertEquals("Unexpected Directory type", MMapDirectory.class, directory.getClass());
         Assert.assertEquals(temporaryFolder.getRoot().getAbsolutePath()
                         + File.separator + "tempdir"
-                        + File.separator + config.getFullSpaceName()
+                        + File.separator + config.getSpaceInstanceName()
                         + File.separator + "subfolder",
                 ((MMapDirectory) directory).getDirectory().toFile().getAbsolutePath());
     }
 
     @Test
     public void testLocationNoWorkingDir() throws IOException {
-        QueryExtensionManagerConfig config = new MockConfig()
+        QueryExtensionRuntimeInfo config = new MockConfig()
                 .setSpaceProperty("spatial.lucene.storage.directory-type", "MMapDirectory")
                 .setWorkDir(null); //null as second parameter simulates there is no working dir (not pu)
 
@@ -135,15 +135,16 @@ public class LuceneConfigurationTest {
 
         Assert.assertEquals("Unexpected Directory type", MMapDirectory.class, directory.getClass());
         Assert.assertEquals(System.getProperty("user.dir") +
-                        File.separator + "luceneIndex" +
-                        File.separator + config.getFullSpaceName() +
+                        File.separator + "xap" +
+                        File.separator + "spatial" +
+                        File.separator + config.getSpaceInstanceName() +
                         File.separator + "subfolder",
                 ((MMapDirectory) directory).getDirectory().toFile().getAbsolutePath());
     }
 
     @Test
     public void testInvalidSpatialContextTree() {
-        QueryExtensionManagerConfig config = new MockConfig()
+        QueryExtensionRuntimeInfo config = new MockConfig()
                 .setSpaceProperty("spatial.lucene.strategy.spatial-prefix-tree", "invalidValue")
                 .setWorkDir(getWorkingDir());
         try {
@@ -157,7 +158,7 @@ public class LuceneConfigurationTest {
 
     @Test
     public void testSpatialContextTreeQuadPrefixTreeAndMaxLevels() {
-        QueryExtensionManagerConfig config = new MockConfig()
+        QueryExtensionRuntimeInfo config = new MockConfig()
                 .setSpaceProperty("spatial.lucene.strategy.spatial-prefix-tree", "QuadPrefixTree")
                 .setSpaceProperty("spatial.lucene.strategy.spatial-prefix-tree.max-levels", "20")
                 .setWorkDir(getWorkingDir());
@@ -171,7 +172,7 @@ public class LuceneConfigurationTest {
 
     @Test
     public void testInvalidSpatialContext() {
-        QueryExtensionManagerConfig config = new MockConfig()
+        QueryExtensionRuntimeInfo config = new MockConfig()
                 .setSpaceProperty("spatial.context", "dummy")
                 .setWorkDir(getWorkingDir());
 
@@ -186,7 +187,7 @@ public class LuceneConfigurationTest {
 
     @Test
     public void testSpatialContextGEO() {
-        QueryExtensionManagerConfig config = new MockConfig()
+        QueryExtensionRuntimeInfo config = new MockConfig()
                 .setSpaceProperty("spatial.context", "spatial4j")
                 .setSpaceProperty("spatial.context.geo", "true")
                 .setWorkDir(getWorkingDir());
@@ -199,7 +200,7 @@ public class LuceneConfigurationTest {
 
     @Test
     public void testSpatialContextNonGEO() {
-        QueryExtensionManagerConfig config = new MockConfig()
+        QueryExtensionRuntimeInfo config = new MockConfig()
                 .setSpaceProperty("spatial.lucene.strategy.spatial-prefix-tree", "QuadPrefixTree")
                 .setSpaceProperty("spatial.context", "spatial4j")
                 .setSpaceProperty("spatial.context.geo", "false")
@@ -213,7 +214,7 @@ public class LuceneConfigurationTest {
 
     @Test
     public void testSpatialContextJTSNonGEO() {
-        QueryExtensionManagerConfig config = new MockConfig()
+        QueryExtensionRuntimeInfo config = new MockConfig()
                 .setSpaceProperty("spatial.lucene.strategy.spatial-prefix-tree", "QuadPrefixTree")
                 .setSpaceProperty("spatial.context", "jts")
                 .setSpaceProperty("spatial.context.geo", "false")
@@ -227,7 +228,7 @@ public class LuceneConfigurationTest {
 
     @Test
     public void testSpatialContextGEOInvalidWorldBoundsPropertyValue() {
-        QueryExtensionManagerConfig config = new MockConfig()
+        QueryExtensionRuntimeInfo config = new MockConfig()
                 .setSpaceProperty("spatial.context", "jts")
                 .setSpaceProperty("spatial.context.geo", "true")
                 .setSpaceProperty("spatial.context.world-bounds", "invalidvaluehere");
@@ -243,7 +244,7 @@ public class LuceneConfigurationTest {
 
     @Test
     public void testSpatialContextNONGEOInvalidWorldBoundsValues() {
-        QueryExtensionManagerConfig config = new MockConfig()
+        QueryExtensionRuntimeInfo config = new MockConfig()
                 .setSpaceProperty("spatial.context", "spatial4J")
                 .setSpaceProperty("spatial.context.geo", "false")
                 .setSpaceProperty("spatial.context.world-bounds", "1,7,9,1");
@@ -259,7 +260,7 @@ public class LuceneConfigurationTest {
 
     @Test
     public void testSpatialContextJTSGEOInvalidWorldBoundsStringValue() {
-        QueryExtensionManagerConfig config = new MockConfig()
+        QueryExtensionRuntimeInfo config = new MockConfig()
                 .setSpaceProperty("spatial.context", "jts")
                 .setSpaceProperty("spatial.context.geo", "true")
                 .setSpaceProperty("spatial.context.world-bounds", "1,7,1,4a");
@@ -275,7 +276,7 @@ public class LuceneConfigurationTest {
 
     @Test
     public void testSpatialContextJTSNONGEO() {
-        QueryExtensionManagerConfig config = new MockConfig()
+        QueryExtensionRuntimeInfo config = new MockConfig()
                 .setSpaceProperty("spatial.lucene.strategy.spatial-prefix-tree", "QuadPrefixTree")
                 .setSpaceProperty("spatial.context", "jts")
                 .setSpaceProperty("spatial.context.geo", "false")
@@ -291,7 +292,7 @@ public class LuceneConfigurationTest {
 
     @Test
     public void testInvalidStrategy() {
-        QueryExtensionManagerConfig config = new MockConfig()
+        QueryExtensionRuntimeInfo config = new MockConfig()
                 .setSpaceProperty("spatial.lucene.strategy", "mystrategy");
 
         try {
@@ -305,7 +306,7 @@ public class LuceneConfigurationTest {
 
     @Test
     public void testStrategyRecursivePrefixTreeAndDistErrPct() {
-        QueryExtensionManagerConfig config = new MockConfig()
+        QueryExtensionRuntimeInfo config = new MockConfig()
                 .setSpaceProperty("spatial.lucene.strategy", "RecursivePrefixTree")
                 .setSpaceProperty("spatial.lucene.strategy.spatial-prefix-tree", "GeohashPrefixTree")
                 .setSpaceProperty("spatial.lucene.strategy.spatial-prefix-tree.max-levels", "10")
@@ -323,7 +324,7 @@ public class LuceneConfigurationTest {
 
     @Test
     public void testStrategyBBox() {
-        QueryExtensionManagerConfig config = new MockConfig()
+        QueryExtensionRuntimeInfo config = new MockConfig()
                 .setSpaceProperty("spatial.lucene.strategy", "BBox")
                 .setSpaceProperty("spatial.context", "spatial4J")
                 .setSpaceProperty("spatial.context.geo", "false")
@@ -338,7 +339,7 @@ public class LuceneConfigurationTest {
 
     @Test
     public void testStrategyComposite() {
-        QueryExtensionManagerConfig config = new MockConfig()
+        QueryExtensionRuntimeInfo config = new MockConfig()
                 .setSpaceProperty("spatial.lucene.strategy", "composite")
                 .setSpaceProperty("spatial.context", "spatial4J")
                 .setSpaceProperty("spatial.context.geo", "true")
@@ -351,12 +352,23 @@ public class LuceneConfigurationTest {
         Assert.assertEquals("Expecting geo spatial context", true, luceneConfiguration.getSpatialContext().isGeo());
     }
 
-    private static class MockConfig extends QueryExtensionManagerConfig {
+    private static class MockConfig implements QueryExtensionRuntimeInfo {
         private Properties properties = new Properties();
+        private String workDir;
 
         @Override
-        public String getFullSpaceName() {
+        public String getSpaceInstanceName() {
             return "foo";
+        }
+
+        @Override
+        public String getSpaceInstanceWorkDirectory() {
+            return workDir;
+        }
+
+        public MockConfig setWorkDir(String workDir) {
+            this.workDir = workDir;
+            return this;
         }
 
         @Override

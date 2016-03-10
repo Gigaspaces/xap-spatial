@@ -17,7 +17,7 @@
  ******************************************************************************/
 package org.openspaces.spatial.spi;
 
-import com.gigaspaces.query.extension.QueryExtensionManagerConfig;
+import com.gigaspaces.query.extension.QueryExtensionRuntimeInfo;
 import com.spatial4j.core.context.SpatialContext;
 import com.spatial4j.core.context.SpatialContextFactory;
 import com.spatial4j.core.context.jts.JtsSpatialContext;
@@ -131,7 +131,7 @@ public class LuceneSpatialConfiguration {
         }
     }
 
-    public LuceneSpatialConfiguration(QueryExtensionManagerConfig config) {
+    public LuceneSpatialConfiguration(QueryExtensionRuntimeInfo config) {
         this._spatialContext = createSpatialContext(config);
         this._strategyFactory = createStrategyFactory(config);
         this._directoryFactory = createDirectoryFactory(config);
@@ -140,7 +140,7 @@ public class LuceneSpatialConfiguration {
         this._maxUncommittedChanges = 1000;
     }
 
-    private static RectangleImpl createSpatialContextWorldBounds(QueryExtensionManagerConfig config)  {
+    private static RectangleImpl createSpatialContextWorldBounds(QueryExtensionRuntimeInfo config)  {
         String spatialContextWorldBounds = config.getSpaceProperty(SPATIAL_CONTEXT_WORLD_BOUNDS, null);
         if (spatialContextWorldBounds == null)
             return null;
@@ -167,7 +167,7 @@ public class LuceneSpatialConfiguration {
         return new RectangleImpl(minX, maxX, minY, maxY, null);
     }
 
-    private static SpatialContext createSpatialContext(QueryExtensionManagerConfig config) {
+    private static SpatialContext createSpatialContext(QueryExtensionRuntimeInfo config) {
         String spatialContextString = config.getSpaceProperty(SPATIAL_CONTEXT, SPATIAL_CONTEXT_DEFAULT);
         SupportedSpatialContext spatialContext = SupportedSpatialContext.byName(spatialContextString);
         boolean geo = Boolean.valueOf(config.getSpaceProperty(SPATIAL_CONTEXT_GEO, SPATIAL_CONTEXT_GEO_DEFAULT));
@@ -193,7 +193,7 @@ public class LuceneSpatialConfiguration {
         }
     }
 
-    protected StrategyFactory createStrategyFactory(QueryExtensionManagerConfig config) {
+    protected StrategyFactory createStrategyFactory(QueryExtensionRuntimeInfo config) {
         String strategyString = config.getSpaceProperty(STRATEGY, STRATEGY_DEFAULT);
         SupportedSpatialStrategy spatialStrategy = SupportedSpatialStrategy.byName(strategyString);
 
@@ -240,7 +240,7 @@ public class LuceneSpatialConfiguration {
         }
     }
 
-    private static SpatialPrefixTree createSpatialPrefixTree(QueryExtensionManagerConfig config, SpatialContext spatialContext) {
+    private static SpatialPrefixTree createSpatialPrefixTree(QueryExtensionRuntimeInfo config, SpatialContext spatialContext) {
         String spatialPrefixTreeType = config.getSpaceProperty(SPATIAL_PREFIX_TREE, SPATIAL_PREFIX_TREE_DEFAULT);
 
         SupportedSpatialPrefixTree spatialPrefixTree = SupportedSpatialPrefixTree.byName(spatialPrefixTreeType);
@@ -257,21 +257,21 @@ public class LuceneSpatialConfiguration {
         }
     }
 
-    private static String initLocation(QueryExtensionManagerConfig config) {
+    private static String initLocation(QueryExtensionRuntimeInfo info) {
         //try space-config.spatial.lucene.storage.location first, if not configured then use workingDir.
         //If workingDir == null (Embedded space , Integrated PU , etc...) then use process working dir (user.dir)
-        String location = config.getSpaceProperty(STORAGE_LOCATION, null);
+        String location = info.getSpaceProperty(STORAGE_LOCATION, null);
         if (location == null) {
-            location = config.getWorkDir();
+            location = info.getSpaceInstanceWorkDirectory();
             if (location == null)
-                location = System.getProperty("user.dir");
-            location += FILE_SEPARATOR + "luceneIndex";
+                location = System.getProperty("user.dir") + FILE_SEPARATOR + "xap";
+            location += FILE_SEPARATOR + "spatial";
         }
-        String spaceInstanceName = config.getFullSpaceName().replace(":", "-");
+        String spaceInstanceName = info.getSpaceInstanceName().replace(".", "-");
         return location + FILE_SEPARATOR + spaceInstanceName;
     }
 
-    protected DirectoryFactory createDirectoryFactory(QueryExtensionManagerConfig config) {
+    protected DirectoryFactory createDirectoryFactory(QueryExtensionRuntimeInfo config) {
         String directoryType = config.getSpaceProperty(STORAGE_DIRECTORYTYPE, STORAGE_DIRECTORYTYPE_DEFAULT);
         SupportedDirectory directory = SupportedDirectory.byName(directoryType);
 

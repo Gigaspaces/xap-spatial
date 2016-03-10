@@ -19,7 +19,7 @@ package org.openspaces.spatial.spi;
 
 import com.gigaspaces.query.extension.QueryExtensionManager;
 import com.gigaspaces.query.extension.QueryExtensionProvider;
-import com.gigaspaces.query.extension.QueryExtensionManagerConfig;
+import com.gigaspaces.query.extension.QueryExtensionRuntimeInfo;
 import com.gigaspaces.query.extension.metadata.DefaultQueryExtensionPathInfo;
 import com.gigaspaces.query.extension.metadata.QueryExtensionPropertyInfo;
 import org.openspaces.spatial.SpaceSpatialIndex;
@@ -39,8 +39,8 @@ public class LuceneSpatialQueryExtensionProvider extends QueryExtensionProvider 
     }
 
     @Override
-    public QueryExtensionManager createManager(QueryExtensionManagerConfig config) {
-        return new LuceneSpatialQueryExtensionManager(this, config);
+    public QueryExtensionManager createManager(QueryExtensionRuntimeInfo info) {
+        return new LuceneSpatialQueryExtensionManager(this, info);
     }
 
     private static String path(String property, SpaceSpatialIndex index) {

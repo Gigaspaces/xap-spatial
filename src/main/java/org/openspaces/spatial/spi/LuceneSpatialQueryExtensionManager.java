@@ -22,7 +22,7 @@ import com.gigaspaces.metadata.SpaceTypeDescriptor;
 import com.gigaspaces.server.SpaceServerEntry;
 import com.gigaspaces.query.extension.QueryExtensionEntryIterator;
 import com.gigaspaces.query.extension.QueryExtensionManager;
-import com.gigaspaces.query.extension.QueryExtensionManagerConfig;
+import com.gigaspaces.query.extension.QueryExtensionRuntimeInfo;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.index.DirectoryReader;
@@ -59,10 +59,10 @@ public class LuceneSpatialQueryExtensionManager extends QueryExtensionManager {
     private final String _namespace;
     private final LuceneSpatialConfiguration _luceneConfiguration;
 
-    public LuceneSpatialQueryExtensionManager(LuceneSpatialQueryExtensionProvider provider, QueryExtensionManagerConfig config) {
-        super(config);
+    public LuceneSpatialQueryExtensionManager(LuceneSpatialQueryExtensionProvider provider, QueryExtensionRuntimeInfo info) {
+        super(info);
         _namespace = provider.getNamespace();
-        _luceneConfiguration = new LuceneSpatialConfiguration(config);
+        _luceneConfiguration = new LuceneSpatialConfiguration(info);
         File location = new File(_luceneConfiguration.getLocation());
         if (location.exists())
             FileUtils.deleteFileOrDirectory(location);
@@ -130,7 +130,7 @@ public class LuceneSpatialQueryExtensionManager extends QueryExtensionManager {
     }
 
     @Override
-    public QueryExtensionEntryIterator query(String typeName, String path, String operationName, Object operand) {
+    public QueryExtensionEntryIterator queryByIndex(String typeName, String path, String operationName, Object operand) {
         if (_logger.isLoggable(Level.FINE))
             _logger.log(Level.FINE, "query [typeName=" + typeName + ", path=" + path + ", operation=" + operationName + ", operand=" + operand + "]");
 
@@ -151,7 +151,7 @@ public class LuceneSpatialQueryExtensionManager extends QueryExtensionManager {
     }
 
     @Override
-    public boolean filter(String operationName, Object leftOperand, Object rightOperand) {
+    public boolean accept(String operationName, Object leftOperand, Object rightOperand) {
         if (_logger.isLoggable(Level.FINE))
             _logger.log(Level.FINE, "filter [operation=" + operationName + ", leftOperand=" + leftOperand + ", rightOperand=" + rightOperand + "]");
 
