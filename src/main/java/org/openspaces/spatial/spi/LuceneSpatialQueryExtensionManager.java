@@ -62,7 +62,7 @@ public class LuceneSpatialQueryExtensionManager extends QueryExtensionManager {
     public LuceneSpatialQueryExtensionManager(LuceneSpatialQueryExtensionProvider provider, QueryExtensionRuntimeInfo info) {
         super(info);
         _namespace = provider.getNamespace();
-        _luceneConfiguration = new LuceneSpatialConfiguration(info);
+        _luceneConfiguration = new LuceneSpatialConfiguration(provider, info);
         File location = new File(_luceneConfiguration.getLocation());
         if (location.exists())
             FileUtils.deleteFileOrDirectory(location);

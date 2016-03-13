@@ -46,38 +46,37 @@ import java.util.Arrays;
  */
 public class LuceneSpatialConfiguration {
     public static final String FILE_SEPARATOR = File.separator;
-    public static final String SPATIAL_PREFIX = "spatial";
 
-    //space-config.spatial.lucene.strategy
-    public static final String STRATEGY = SPATIAL_PREFIX + ".lucene.strategy";
+    //lucene.strategy
+    public static final String STRATEGY = "lucene.strategy";
     public static final String STRATEGY_DEFAULT = SupportedSpatialStrategy.RecursivePrefixTree.name();
 
-    //space-config.spatial.lucene.strategy.spatial-prefix-tree
-    public static final String SPATIAL_PREFIX_TREE = SPATIAL_PREFIX + ".lucene.strategy.spatial-prefix-tree";
+    //lucene.strategy.spatial-prefix-tree
+    public static final String SPATIAL_PREFIX_TREE = "lucene.strategy.spatial-prefix-tree";
     public static final String SPATIAL_PREFIX_TREE_DEFAULT = SupportedSpatialPrefixTree.GeohashPrefixTree.name();
-    //space-config.spatial.lucene.strategy.spatial-prefix-tree.max-levels
-    public static final String SPATIAL_PREFIX_TREE_MAX_LEVELS = SPATIAL_PREFIX + ".lucene.strategy.spatial-prefix-tree.max-levels";
+    //lucene.strategy.spatial-prefix-tree.max-levels
+    public static final String SPATIAL_PREFIX_TREE_MAX_LEVELS = "lucene.strategy.spatial-prefix-tree.max-levels";
     public static final String SPATIAL_PREFIX_TREE_MAX_LEVELS_DEFAULT = "11";
-    //space-config.spatial.lucene.strategy.dist-err-pct
-    public static final String DIST_ERR_PCT = SPATIAL_PREFIX + ".lucene.strategy.distance-error-pct";
+    //lucene.strategy.dist-err-pct
+    public static final String DIST_ERR_PCT = "lucene.strategy.distance-error-pct";
     public static final String DIST_ERR_PCT_DEFAULT = "0.025";
 
-    //space-config.spatial.lucene.storage.directory-type
-    public static final String STORAGE_DIRECTORYTYPE = SPATIAL_PREFIX + ".lucene.storage.directory-type";
+    //lucene.storage.directory-type
+    public static final String STORAGE_DIRECTORYTYPE = "lucene.storage.directory-type";
     public static final String STORAGE_DIRECTORYTYPE_DEFAULT = SupportedDirectory.MMapDirectory.name();
-    //space-config.spatial.lucene.storage.location
-    public static final String STORAGE_LOCATION = SPATIAL_PREFIX + ".lucene.storage.location";
+    //lucene.storage.location
+    public static final String STORAGE_LOCATION = "lucene.storage.location";
 
-    //space-config.spatial.context
-    public static final String SPATIAL_CONTEXT = SPATIAL_PREFIX + ".context";
+    //context
+    public static final String SPATIAL_CONTEXT = "context";
     public static final String SPATIAL_CONTEXT_DEFAULT = SupportedSpatialContext.JTS.name();
 
-    //space-config.spatial.context.geo
-    public static final String SPATIAL_CONTEXT_GEO = SPATIAL_PREFIX + ".context.geo";
+    //context.geo
+    public static final String SPATIAL_CONTEXT_GEO = "context.geo";
     public static final String SPATIAL_CONTEXT_GEO_DEFAULT = "true";
 
-    //space-config.spatial.context.world-bounds, default is set by lucene
-    public static final String SPATIAL_CONTEXT_WORLD_BOUNDS = SPATIAL_PREFIX + ".context.world-bounds";
+    //context.world-bounds, default is set by lucene
+    public static final String SPATIAL_CONTEXT_WORLD_BOUNDS = "context.world-bounds";
 
     private final SpatialContext _spatialContext;
     private final StrategyFactory _strategyFactory;
@@ -131,17 +130,17 @@ public class LuceneSpatialConfiguration {
         }
     }
 
-    public LuceneSpatialConfiguration(QueryExtensionRuntimeInfo config) {
-        this._spatialContext = createSpatialContext(config);
-        this._strategyFactory = createStrategyFactory(config);
-        this._directoryFactory = createDirectoryFactory(config);
-        this._location = initLocation(config);
+    public LuceneSpatialConfiguration(LuceneSpatialQueryExtensionProvider provider, QueryExtensionRuntimeInfo info) {
+        this._spatialContext = createSpatialContext(provider);
+        this._strategyFactory = createStrategyFactory(provider);
+        this._directoryFactory = createDirectoryFactory(provider);
+        this._location = initLocation(provider, info);
         //TODO: read from config
         this._maxUncommittedChanges = 1000;
     }
 
-    private static RectangleImpl createSpatialContextWorldBounds(QueryExtensionRuntimeInfo config)  {
-        String spatialContextWorldBounds = config.getSpaceProperty(SPATIAL_CONTEXT_WORLD_BOUNDS, null);
+    private static RectangleImpl createSpatialContextWorldBounds(LuceneSpatialQueryExtensionProvider provider)  {
+        String spatialContextWorldBounds = provider.getCustomProperty(SPATIAL_CONTEXT_WORLD_BOUNDS, null);
         if (spatialContextWorldBounds == null)
             return null;
 
@@ -167,11 +166,11 @@ public class LuceneSpatialConfiguration {
         return new RectangleImpl(minX, maxX, minY, maxY, null);
     }
 
-    private static SpatialContext createSpatialContext(QueryExtensionRuntimeInfo config) {
-        String spatialContextString = config.getSpaceProperty(SPATIAL_CONTEXT, SPATIAL_CONTEXT_DEFAULT);
+    private static SpatialContext createSpatialContext(LuceneSpatialQueryExtensionProvider provider) {
+        String spatialContextString = provider.getCustomProperty(SPATIAL_CONTEXT, SPATIAL_CONTEXT_DEFAULT);
         SupportedSpatialContext spatialContext = SupportedSpatialContext.byName(spatialContextString);
-        boolean geo = Boolean.valueOf(config.getSpaceProperty(SPATIAL_CONTEXT_GEO, SPATIAL_CONTEXT_GEO_DEFAULT));
-        RectangleImpl worldBounds = createSpatialContextWorldBounds(config);
+        boolean geo = Boolean.valueOf(provider.getCustomProperty(SPATIAL_CONTEXT_GEO, SPATIAL_CONTEXT_GEO_DEFAULT));
+        RectangleImpl worldBounds = createSpatialContextWorldBounds(provider);
 
         switch (spatialContext) {
             case JTS: {
@@ -193,14 +192,14 @@ public class LuceneSpatialConfiguration {
         }
     }
 
-    protected StrategyFactory createStrategyFactory(QueryExtensionRuntimeInfo config) {
-        String strategyString = config.getSpaceProperty(STRATEGY, STRATEGY_DEFAULT);
+    protected StrategyFactory createStrategyFactory(LuceneSpatialQueryExtensionProvider provider) {
+        String strategyString = provider.getCustomProperty(STRATEGY, STRATEGY_DEFAULT);
         SupportedSpatialStrategy spatialStrategy = SupportedSpatialStrategy.byName(strategyString);
 
         switch (spatialStrategy) {
             case RecursivePrefixTree: {
-                final SpatialPrefixTree geohashPrefixTree = createSpatialPrefixTree(config, _spatialContext);
-                String distErrPctValue = config.getSpaceProperty(DIST_ERR_PCT, DIST_ERR_PCT_DEFAULT);
+                final SpatialPrefixTree geohashPrefixTree = createSpatialPrefixTree(provider, _spatialContext);
+                String distErrPctValue = provider.getCustomProperty(DIST_ERR_PCT, DIST_ERR_PCT_DEFAULT);
                 final double distErrPct = Double.valueOf(distErrPctValue);
 
                 return new StrategyFactory(spatialStrategy) {
@@ -221,8 +220,8 @@ public class LuceneSpatialConfiguration {
                 };
             }
             case Composite: {
-                final SpatialPrefixTree geohashPrefixTree = createSpatialPrefixTree(config, _spatialContext);
-                String distErrPctValue = config.getSpaceProperty(DIST_ERR_PCT, DIST_ERR_PCT_DEFAULT);
+                final SpatialPrefixTree geohashPrefixTree = createSpatialPrefixTree(provider, _spatialContext);
+                String distErrPctValue = provider.getCustomProperty(DIST_ERR_PCT, DIST_ERR_PCT_DEFAULT);
                 final double distErrPct = Double.valueOf(distErrPctValue);
 
                 return new StrategyFactory(spatialStrategy) {
@@ -240,11 +239,11 @@ public class LuceneSpatialConfiguration {
         }
     }
 
-    private static SpatialPrefixTree createSpatialPrefixTree(QueryExtensionRuntimeInfo config, SpatialContext spatialContext) {
-        String spatialPrefixTreeType = config.getSpaceProperty(SPATIAL_PREFIX_TREE, SPATIAL_PREFIX_TREE_DEFAULT);
+    private static SpatialPrefixTree createSpatialPrefixTree(LuceneSpatialQueryExtensionProvider provider, SpatialContext spatialContext) {
+        String spatialPrefixTreeType = provider.getCustomProperty(SPATIAL_PREFIX_TREE, SPATIAL_PREFIX_TREE_DEFAULT);
 
         SupportedSpatialPrefixTree spatialPrefixTree = SupportedSpatialPrefixTree.byName(spatialPrefixTreeType);
-        String maxLevelsStr = config.getSpaceProperty(SPATIAL_PREFIX_TREE_MAX_LEVELS, SPATIAL_PREFIX_TREE_MAX_LEVELS_DEFAULT);
+        String maxLevelsStr = provider.getCustomProperty(SPATIAL_PREFIX_TREE_MAX_LEVELS, SPATIAL_PREFIX_TREE_MAX_LEVELS_DEFAULT);
         int maxLevels = Integer.valueOf(maxLevelsStr);
 
         switch (spatialPrefixTree) {
@@ -257,10 +256,10 @@ public class LuceneSpatialConfiguration {
         }
     }
 
-    private static String initLocation(QueryExtensionRuntimeInfo info) {
-        //try space-config.spatial.lucene.storage.location first, if not configured then use workingDir.
+    private static String initLocation(LuceneSpatialQueryExtensionProvider provider, QueryExtensionRuntimeInfo info) {
+        //try lucene.storage.location first, if not configured then use workingDir.
         //If workingDir == null (Embedded space , Integrated PU , etc...) then use process working dir (user.dir)
-        String location = info.getSpaceProperty(STORAGE_LOCATION, null);
+        String location = provider.getCustomProperty(STORAGE_LOCATION, null);
         if (location == null) {
             location = info.getSpaceInstanceWorkDirectory();
             if (location == null)
@@ -271,8 +270,8 @@ public class LuceneSpatialConfiguration {
         return location + FILE_SEPARATOR + spaceInstanceName;
     }
 
-    protected DirectoryFactory createDirectoryFactory(QueryExtensionRuntimeInfo config) {
-        String directoryType = config.getSpaceProperty(STORAGE_DIRECTORYTYPE, STORAGE_DIRECTORYTYPE_DEFAULT);
+    protected DirectoryFactory createDirectoryFactory(LuceneSpatialQueryExtensionProvider provider) {
+        String directoryType = provider.getCustomProperty(STORAGE_DIRECTORYTYPE, STORAGE_DIRECTORYTYPE_DEFAULT);
         SupportedDirectory directory = SupportedDirectory.byName(directoryType);
 
         switch (directory) {

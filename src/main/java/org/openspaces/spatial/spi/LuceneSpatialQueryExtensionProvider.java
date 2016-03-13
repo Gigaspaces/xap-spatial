@@ -26,12 +26,15 @@ import org.openspaces.spatial.SpaceSpatialIndex;
 import org.openspaces.spatial.SpaceSpatialIndexes;
 
 import java.lang.annotation.Annotation;
+import java.util.Properties;
 
 /**
  * @author Niv Ingberg
  * @since 11.0
  */
 public class LuceneSpatialQueryExtensionProvider extends QueryExtensionProvider {
+
+    private final Properties customProperties = new Properties();
 
     @Override
     public String getNamespace() {
@@ -59,5 +62,14 @@ public class LuceneSpatialQueryExtensionProvider extends QueryExtensionProvider 
                 result.addPathInfo(path(property, index), new DefaultQueryExtensionPathInfo());
         }
         return result;
+    }
+
+    public String getCustomProperty(String key, String defaultValue) {
+        return customProperties.getProperty(key, defaultValue);
+    }
+
+    public LuceneSpatialQueryExtensionProvider setCustomProperty(String key, String value) {
+        this.customProperties.setProperty(key, value);
+        return this;
     }
 }

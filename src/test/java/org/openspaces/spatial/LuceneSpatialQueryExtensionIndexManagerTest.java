@@ -38,11 +38,6 @@ public class LuceneSpatialQueryExtensionIndexManagerTest {
             public String getSpaceInstanceWorkDirectory() {
                 return null;
             }
-
-            @Override
-            public String getSpaceProperty(String key, String defaultValue) {
-                return defaultValue;
-            }
         };
         _handler = new LuceneSpatialQueryExtensionManager(new LuceneSpatialQueryExtensionProvider(), config);
     }

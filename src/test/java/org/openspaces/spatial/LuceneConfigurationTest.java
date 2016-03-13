@@ -16,11 +16,11 @@ import org.apache.lucene.store.RAMDirectory;
 import org.junit.*;
 import org.junit.rules.TemporaryFolder;
 import org.openspaces.spatial.spi.LuceneSpatialConfiguration;
+import org.openspaces.spatial.spi.LuceneSpatialQueryExtensionProvider;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.Properties;
 
 /**
  * @author Yohana Khoury
@@ -56,7 +56,7 @@ public class LuceneConfigurationTest {
     public void testDefaults() throws IOException {
         QueryExtensionRuntimeInfo config = new MockConfig()
                 .setWorkDir(getWorkingDir());
-        LuceneSpatialConfiguration luceneConfiguration = new LuceneSpatialConfiguration(config);
+        LuceneSpatialConfiguration luceneConfiguration = new LuceneSpatialConfiguration(new LuceneSpatialQueryExtensionProvider(), config);
 
         //test directory
         Directory directory = luceneConfiguration.getDirectory("A");
@@ -83,10 +83,10 @@ public class LuceneConfigurationTest {
 
     @Test
     public void testInvalidDirectoryType() {
-        QueryExtensionRuntimeInfo config = new MockConfig()
-                .setSpaceProperty("spatial.lucene.storage.directory-type", "A");
+        LuceneSpatialQueryExtensionProvider provider = new LuceneSpatialQueryExtensionProvider()
+                .setCustomProperty("lucene.storage.directory-type", "A");
         try {
-            new LuceneSpatialConfiguration(config);
+            new LuceneSpatialConfiguration(provider, new MockConfig());
             Assert.fail("An exception should be thrown");
         } catch (RuntimeException e) {
             //OK
@@ -96,11 +96,12 @@ public class LuceneConfigurationTest {
 
     @Test
     public void testRAMDirectoryTypeCaseInsensitive() throws IOException {
+        LuceneSpatialQueryExtensionProvider provider = new LuceneSpatialQueryExtensionProvider()
+                .setCustomProperty("lucene.storage.directory-type", "Ramdirectory");
         QueryExtensionRuntimeInfo config = new MockConfig()
-                .setSpaceProperty("spatial.lucene.storage.directory-type", "Ramdirectory")
                 .setWorkDir(getWorkingDir());
 
-        LuceneSpatialConfiguration luceneConfiguration = new LuceneSpatialConfiguration(config);
+        LuceneSpatialConfiguration luceneConfiguration = new LuceneSpatialConfiguration(provider, config);
 
         Directory directory = luceneConfiguration.getDirectory("unused");
         Assert.assertEquals("Unexpected Directory type", RAMDirectory.class, directory.getClass());
@@ -108,12 +109,13 @@ public class LuceneConfigurationTest {
 
     @Test
     public void testMMapDirectoryTypeAndLocation() throws IOException {
+        LuceneSpatialQueryExtensionProvider provider = new LuceneSpatialQueryExtensionProvider()
+                .setCustomProperty("lucene.storage.directory-type", "MMapDirectory")
+                .setCustomProperty("lucene.storage.location", temporaryFolder.getRoot().getAbsolutePath() + "/tempdir");
         QueryExtensionRuntimeInfo config = new MockConfig()
-                .setSpaceProperty("spatial.lucene.storage.directory-type", "MMapDirectory")
-                .setSpaceProperty("spatial.lucene.storage.location", temporaryFolder.getRoot().getAbsolutePath() + "/tempdir")
                 .setWorkDir(getWorkingDir());
 
-        LuceneSpatialConfiguration luceneConfiguration = new LuceneSpatialConfiguration(config);
+        LuceneSpatialConfiguration luceneConfiguration = new LuceneSpatialConfiguration(provider, config);
         Directory directory = luceneConfiguration.getDirectory("subfolder");
 
         Assert.assertEquals("Unexpected Directory type", MMapDirectory.class, directory.getClass());
@@ -126,11 +128,12 @@ public class LuceneConfigurationTest {
 
     @Test
     public void testLocationNoWorkingDir() throws IOException {
+        LuceneSpatialQueryExtensionProvider provider = new LuceneSpatialQueryExtensionProvider()
+                .setCustomProperty("lucene.storage.directory-type", "MMapDirectory");
         QueryExtensionRuntimeInfo config = new MockConfig()
-                .setSpaceProperty("spatial.lucene.storage.directory-type", "MMapDirectory")
                 .setWorkDir(null); //null as second parameter simulates there is no working dir (not pu)
 
-        LuceneSpatialConfiguration luceneConfiguration = new LuceneSpatialConfiguration(config);
+        LuceneSpatialConfiguration luceneConfiguration = new LuceneSpatialConfiguration(provider, config);
         Directory directory = luceneConfiguration.getDirectory("subfolder");
 
         Assert.assertEquals("Unexpected Directory type", MMapDirectory.class, directory.getClass());
@@ -144,11 +147,12 @@ public class LuceneConfigurationTest {
 
     @Test
     public void testInvalidSpatialContextTree() {
+        LuceneSpatialQueryExtensionProvider provider = new LuceneSpatialQueryExtensionProvider()
+                .setCustomProperty("lucene.strategy.spatial-prefix-tree", "invalidValue");
         QueryExtensionRuntimeInfo config = new MockConfig()
-                .setSpaceProperty("spatial.lucene.strategy.spatial-prefix-tree", "invalidValue")
                 .setWorkDir(getWorkingDir());
         try {
-            new LuceneSpatialConfiguration(config);
+            new LuceneSpatialConfiguration(provider, config);
             Assert.fail("An exception should be thrown");
         } catch (RuntimeException e) {
             //OK
@@ -158,12 +162,13 @@ public class LuceneConfigurationTest {
 
     @Test
     public void testSpatialContextTreeQuadPrefixTreeAndMaxLevels() {
+        LuceneSpatialQueryExtensionProvider provider = new LuceneSpatialQueryExtensionProvider()
+                .setCustomProperty("lucene.strategy.spatial-prefix-tree", "QuadPrefixTree")
+                .setCustomProperty("lucene.strategy.spatial-prefix-tree.max-levels", "20");
         QueryExtensionRuntimeInfo config = new MockConfig()
-                .setSpaceProperty("spatial.lucene.strategy.spatial-prefix-tree", "QuadPrefixTree")
-                .setSpaceProperty("spatial.lucene.strategy.spatial-prefix-tree.max-levels", "20")
                 .setWorkDir(getWorkingDir());
 
-        LuceneSpatialConfiguration luceneConfiguration = new LuceneSpatialConfiguration(config);
+        LuceneSpatialConfiguration luceneConfiguration = new LuceneSpatialConfiguration(provider, config);
 
         SpatialStrategy strategy = luceneConfiguration.getStrategy("myField");
         Assert.assertEquals("Unexpected spatial prefix tree", QuadPrefixTree.class, ((RecursivePrefixTreeStrategy) strategy).getGrid().getClass());
@@ -172,12 +177,13 @@ public class LuceneConfigurationTest {
 
     @Test
     public void testInvalidSpatialContext() {
+        LuceneSpatialQueryExtensionProvider provider = new LuceneSpatialQueryExtensionProvider()
+                .setCustomProperty("context", "dummy");
         QueryExtensionRuntimeInfo config = new MockConfig()
-                .setSpaceProperty("spatial.context", "dummy")
                 .setWorkDir(getWorkingDir());
 
         try {
-            new LuceneSpatialConfiguration(config);
+            new LuceneSpatialConfiguration(provider, config);
             Assert.fail("An exception should be thrown");
         } catch (RuntimeException e) {
             //OK
@@ -187,12 +193,13 @@ public class LuceneConfigurationTest {
 
     @Test
     public void testSpatialContextGEO() {
+        LuceneSpatialQueryExtensionProvider provider = new LuceneSpatialQueryExtensionProvider()
+                .setCustomProperty("context", "spatial4j")
+                .setCustomProperty("context.geo", "true");
         QueryExtensionRuntimeInfo config = new MockConfig()
-                .setSpaceProperty("spatial.context", "spatial4j")
-                .setSpaceProperty("spatial.context.geo", "true")
                 .setWorkDir(getWorkingDir());
 
-        LuceneSpatialConfiguration luceneConfiguration = new LuceneSpatialConfiguration(config);
+        LuceneSpatialConfiguration luceneConfiguration = new LuceneSpatialConfiguration(provider, config);
 
         Assert.assertEquals("Unexpected spatial context", SpatialContext.class, luceneConfiguration.getSpatialContext().getClass());
         Assert.assertEquals("Expecting geo spatial context", true, luceneConfiguration.getSpatialContext().isGeo());
@@ -200,13 +207,14 @@ public class LuceneConfigurationTest {
 
     @Test
     public void testSpatialContextNonGEO() {
+        LuceneSpatialQueryExtensionProvider provider = new LuceneSpatialQueryExtensionProvider()
+                .setCustomProperty("lucene.strategy.spatial-prefix-tree", "QuadPrefixTree")
+                .setCustomProperty("context", "spatial4j")
+                .setCustomProperty("context.geo", "false");
         QueryExtensionRuntimeInfo config = new MockConfig()
-                .setSpaceProperty("spatial.lucene.strategy.spatial-prefix-tree", "QuadPrefixTree")
-                .setSpaceProperty("spatial.context", "spatial4j")
-                .setSpaceProperty("spatial.context.geo", "false")
                 .setWorkDir(getWorkingDir());
 
-        LuceneSpatialConfiguration luceneConfiguration = new LuceneSpatialConfiguration(config);
+        LuceneSpatialConfiguration luceneConfiguration = new LuceneSpatialConfiguration(provider, config);
 
         Assert.assertEquals("Unexpected spatial context", SpatialContext.class, luceneConfiguration.getSpatialContext().getClass());
         Assert.assertEquals("Expecting geo spatial context", false, luceneConfiguration.getSpatialContext().isGeo());
@@ -214,13 +222,14 @@ public class LuceneConfigurationTest {
 
     @Test
     public void testSpatialContextJTSNonGEO() {
+        LuceneSpatialQueryExtensionProvider provider = new LuceneSpatialQueryExtensionProvider()
+                .setCustomProperty("lucene.strategy.spatial-prefix-tree", "QuadPrefixTree")
+                .setCustomProperty("context", "jts")
+                .setCustomProperty("context.geo", "false");
         QueryExtensionRuntimeInfo config = new MockConfig()
-                .setSpaceProperty("spatial.lucene.strategy.spatial-prefix-tree", "QuadPrefixTree")
-                .setSpaceProperty("spatial.context", "jts")
-                .setSpaceProperty("spatial.context.geo", "false")
                 .setWorkDir(getWorkingDir());
 
-        LuceneSpatialConfiguration luceneConfiguration = new LuceneSpatialConfiguration(config);
+        LuceneSpatialConfiguration luceneConfiguration = new LuceneSpatialConfiguration(provider, config);
 
         Assert.assertEquals("Unexpected spatial context", JtsSpatialContext.class, luceneConfiguration.getSpatialContext().getClass());
         Assert.assertEquals("Expecting geo spatial context", false, luceneConfiguration.getSpatialContext().isGeo());
@@ -228,13 +237,14 @@ public class LuceneConfigurationTest {
 
     @Test
     public void testSpatialContextGEOInvalidWorldBoundsPropertyValue() {
-        QueryExtensionRuntimeInfo config = new MockConfig()
-                .setSpaceProperty("spatial.context", "jts")
-                .setSpaceProperty("spatial.context.geo", "true")
-                .setSpaceProperty("spatial.context.world-bounds", "invalidvaluehere");
+        LuceneSpatialQueryExtensionProvider provider = new LuceneSpatialQueryExtensionProvider()
+                .setCustomProperty("context", "jts")
+                .setCustomProperty("context.geo", "true")
+                .setCustomProperty("context.world-bounds", "invalidvaluehere");
 
+        QueryExtensionRuntimeInfo config = new MockConfig();
         try {
-            new LuceneSpatialConfiguration(config);
+            new LuceneSpatialConfiguration(provider, config);
             Assert.fail("An exception should be thrown");
         } catch (RuntimeException e) {
             //OK
@@ -244,13 +254,14 @@ public class LuceneConfigurationTest {
 
     @Test
     public void testSpatialContextNONGEOInvalidWorldBoundsValues() {
-        QueryExtensionRuntimeInfo config = new MockConfig()
-                .setSpaceProperty("spatial.context", "spatial4J")
-                .setSpaceProperty("spatial.context.geo", "false")
-                .setSpaceProperty("spatial.context.world-bounds", "1,7,9,1");
+        LuceneSpatialQueryExtensionProvider provider = new LuceneSpatialQueryExtensionProvider()
+                .setCustomProperty("context", "spatial4J")
+                .setCustomProperty("context.geo", "false")
+                .setCustomProperty("context.world-bounds", "1,7,9,1");
+        QueryExtensionRuntimeInfo config = new MockConfig();
 
         try {
-            new LuceneSpatialConfiguration(config);
+            new LuceneSpatialConfiguration(provider, config);
             Assert.fail("An exception should be thrown");
         } catch (RuntimeException e) {
             //OK
@@ -260,13 +271,14 @@ public class LuceneConfigurationTest {
 
     @Test
     public void testSpatialContextJTSGEOInvalidWorldBoundsStringValue() {
-        QueryExtensionRuntimeInfo config = new MockConfig()
-                .setSpaceProperty("spatial.context", "jts")
-                .setSpaceProperty("spatial.context.geo", "true")
-                .setSpaceProperty("spatial.context.world-bounds", "1,7,1,4a");
+        LuceneSpatialQueryExtensionProvider provider = new LuceneSpatialQueryExtensionProvider()
+                .setCustomProperty("context", "jts")
+                .setCustomProperty("context.geo", "true")
+                .setCustomProperty("context.world-bounds", "1,7,1,4a");
+        QueryExtensionRuntimeInfo config = new MockConfig();
 
         try {
-            new LuceneSpatialConfiguration(config);
+            new LuceneSpatialConfiguration(provider, config);
             Assert.fail("An exception should be thrown");
         } catch (RuntimeException e) {
             //OK
@@ -276,14 +288,15 @@ public class LuceneConfigurationTest {
 
     @Test
     public void testSpatialContextJTSNONGEO() {
+        LuceneSpatialQueryExtensionProvider provider = new LuceneSpatialQueryExtensionProvider()
+                .setCustomProperty("lucene.strategy.spatial-prefix-tree", "QuadPrefixTree")
+                .setCustomProperty("context", "jts")
+                .setCustomProperty("context.geo", "false")
+                .setCustomProperty("context.world-bounds", "1,10,-100,100");
         QueryExtensionRuntimeInfo config = new MockConfig()
-                .setSpaceProperty("spatial.lucene.strategy.spatial-prefix-tree", "QuadPrefixTree")
-                .setSpaceProperty("spatial.context", "jts")
-                .setSpaceProperty("spatial.context.geo", "false")
-                .setSpaceProperty("spatial.context.world-bounds", "1,10,-100,100")
                 .setWorkDir(getWorkingDir());
 
-        LuceneSpatialConfiguration luceneConfiguration = new LuceneSpatialConfiguration(config);
+        LuceneSpatialConfiguration luceneConfiguration = new LuceneSpatialConfiguration(provider, config);
 
         Assert.assertEquals("Unexpected spatial context", JtsSpatialContext.class, luceneConfiguration.getSpatialContext().getClass());
         Assert.assertEquals("Expecting geo spatial context", false, luceneConfiguration.getSpatialContext().isGeo());
@@ -292,11 +305,11 @@ public class LuceneConfigurationTest {
 
     @Test
     public void testInvalidStrategy() {
-        QueryExtensionRuntimeInfo config = new MockConfig()
-                .setSpaceProperty("spatial.lucene.strategy", "mystrategy");
-
+        LuceneSpatialQueryExtensionProvider provider = new LuceneSpatialQueryExtensionProvider()
+                .setCustomProperty("lucene.strategy", "mystrategy");
+        QueryExtensionRuntimeInfo config = new MockConfig();
         try {
-            new LuceneSpatialConfiguration(config);
+            new LuceneSpatialConfiguration(provider, config);
             Assert.fail("An exception should be thrown");
         } catch (RuntimeException e) {
             //OK
@@ -306,14 +319,15 @@ public class LuceneConfigurationTest {
 
     @Test
     public void testStrategyRecursivePrefixTreeAndDistErrPct() {
+        LuceneSpatialQueryExtensionProvider provider = new LuceneSpatialQueryExtensionProvider()
+                .setCustomProperty("lucene.strategy", "RecursivePrefixTree")
+                .setCustomProperty("lucene.strategy.spatial-prefix-tree", "GeohashPrefixTree")
+                .setCustomProperty("lucene.strategy.spatial-prefix-tree.max-levels", "10")
+                .setCustomProperty("lucene.strategy.distance-error-pct", "0.5");
         QueryExtensionRuntimeInfo config = new MockConfig()
-                .setSpaceProperty("spatial.lucene.strategy", "RecursivePrefixTree")
-                .setSpaceProperty("spatial.lucene.strategy.spatial-prefix-tree", "GeohashPrefixTree")
-                .setSpaceProperty("spatial.lucene.strategy.spatial-prefix-tree.max-levels", "10")
-                .setSpaceProperty("spatial.lucene.strategy.distance-error-pct", "0.5")
                 .setWorkDir(getWorkingDir());
 
-        LuceneSpatialConfiguration luceneConfiguration = new LuceneSpatialConfiguration(config);
+        LuceneSpatialConfiguration luceneConfiguration = new LuceneSpatialConfiguration(provider, config);
 
         Assert.assertEquals("Unexpected strategy type", RecursivePrefixTreeStrategy.class, luceneConfiguration.getStrategy("myField").getClass());
         RecursivePrefixTreeStrategy strategy = (RecursivePrefixTreeStrategy) luceneConfiguration.getStrategy("myField");
@@ -324,13 +338,14 @@ public class LuceneConfigurationTest {
 
     @Test
     public void testStrategyBBox() {
+        LuceneSpatialQueryExtensionProvider provider = new LuceneSpatialQueryExtensionProvider()
+                .setCustomProperty("lucene.strategy", "BBox")
+                .setCustomProperty("context", "spatial4J")
+                .setCustomProperty("context.geo", "false");
         QueryExtensionRuntimeInfo config = new MockConfig()
-                .setSpaceProperty("spatial.lucene.strategy", "BBox")
-                .setSpaceProperty("spatial.context", "spatial4J")
-                .setSpaceProperty("spatial.context.geo", "false")
                 .setWorkDir(getWorkingDir());
 
-        LuceneSpatialConfiguration luceneConfiguration = new LuceneSpatialConfiguration(config);
+        LuceneSpatialConfiguration luceneConfiguration = new LuceneSpatialConfiguration(provider, config);
 
         Assert.assertEquals("Unexpected strategy type", BBoxStrategy.class, luceneConfiguration.getStrategy("myField").getClass());
         Assert.assertEquals("Unexpected spatial context", SpatialContext.class, luceneConfiguration.getSpatialContext().getClass());
@@ -339,13 +354,14 @@ public class LuceneConfigurationTest {
 
     @Test
     public void testStrategyComposite() {
+        LuceneSpatialQueryExtensionProvider provider = new LuceneSpatialQueryExtensionProvider()
+                .setCustomProperty("lucene.strategy", "composite")
+                .setCustomProperty("context", "spatial4J")
+                .setCustomProperty("context.geo", "true");
         QueryExtensionRuntimeInfo config = new MockConfig()
-                .setSpaceProperty("spatial.lucene.strategy", "composite")
-                .setSpaceProperty("spatial.context", "spatial4J")
-                .setSpaceProperty("spatial.context.geo", "true")
                 .setWorkDir(getWorkingDir());
 
-        LuceneSpatialConfiguration luceneConfiguration = new LuceneSpatialConfiguration(config);
+        LuceneSpatialConfiguration luceneConfiguration = new LuceneSpatialConfiguration(provider, config);
 
         Assert.assertEquals("Unexpected strategy type", CompositeSpatialStrategy.class, luceneConfiguration.getStrategy("myField").getClass());
         Assert.assertEquals("Unexpected spatial context", SpatialContext.class, luceneConfiguration.getSpatialContext().getClass());
@@ -353,7 +369,6 @@ public class LuceneConfigurationTest {
     }
 
     private static class MockConfig implements QueryExtensionRuntimeInfo {
-        private Properties properties = new Properties();
         private String workDir;
 
         @Override
@@ -368,16 +383,6 @@ public class LuceneConfigurationTest {
 
         public MockConfig setWorkDir(String workDir) {
             this.workDir = workDir;
-            return this;
-        }
-
-        @Override
-        public String getSpaceProperty(String key, String defaultValue) {
-            return properties.getProperty(key, defaultValue);
-        }
-
-        public MockConfig setSpaceProperty(String key, String value) {
-            properties.setProperty(key, value);
             return this;
         }
     }
