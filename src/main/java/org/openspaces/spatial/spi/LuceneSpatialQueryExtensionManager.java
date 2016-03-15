@@ -18,6 +18,7 @@
 package org.openspaces.spatial.spi;
 
 import com.gigaspaces.SpaceRuntimeException;
+import com.gigaspaces.internal.io.FileUtils;
 import com.gigaspaces.metadata.SpaceTypeDescriptor;
 import com.gigaspaces.server.SpaceServerEntry;
 import com.gigaspaces.query.extension.QueryExtensionEntryIterator;
@@ -31,7 +32,6 @@ import org.apache.lucene.search.*;
 import org.apache.lucene.spatial.SpatialStrategy;
 import org.apache.lucene.spatial.query.SpatialArgs;
 import org.apache.lucene.spatial.query.SpatialOperation;
-import org.openspaces.core.util.FileUtils;
 import org.openspaces.spatial.shapes.Shape;
 import org.openspaces.spatial.spatial4j.Spatial4jShapeProvider;
 
@@ -64,8 +64,7 @@ public class LuceneSpatialQueryExtensionManager extends QueryExtensionManager {
         _namespace = provider.getNamespace();
         _luceneConfiguration = new LuceneSpatialConfiguration(provider, info);
         File location = new File(_luceneConfiguration.getLocation());
-        if (location.exists())
-            FileUtils.deleteFileOrDirectory(location);
+        FileUtils.deleteFileOrDirectoryIfExists(location);
     }
 
     @Override
@@ -74,7 +73,7 @@ public class LuceneSpatialQueryExtensionManager extends QueryExtensionManager {
             luceneHolder.close();
 
         _luceneHolderMap.clear();
-        FileUtils.deleteFileOrDirectory(new File(_luceneConfiguration.getLocation()));
+        FileUtils.deleteFileOrDirectoryIfExists(new File(_luceneConfiguration.getLocation()));
         super.close();
     }
 
