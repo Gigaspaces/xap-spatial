@@ -34,7 +34,15 @@ import java.util.Properties;
  */
 public class LuceneSpatialQueryExtensionProvider extends QueryExtensionProvider {
 
-    private final Properties customProperties = new Properties();
+    private final Properties _customProperties;
+
+    public LuceneSpatialQueryExtensionProvider() {
+        this(new Properties());
+    }
+
+    public LuceneSpatialQueryExtensionProvider(Properties customProperties) {
+        this._customProperties = customProperties;
+    }
 
     @Override
     public String getNamespace() {
@@ -65,11 +73,11 @@ public class LuceneSpatialQueryExtensionProvider extends QueryExtensionProvider 
     }
 
     public String getCustomProperty(String key, String defaultValue) {
-        return customProperties.getProperty(key, defaultValue);
+        return _customProperties.getProperty(key, defaultValue);
     }
 
     public LuceneSpatialQueryExtensionProvider setCustomProperty(String key, String value) {
-        this.customProperties.setProperty(key, value);
+        this._customProperties.setProperty(key, value);
         return this;
     }
 }
