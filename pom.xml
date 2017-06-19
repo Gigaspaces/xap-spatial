@@ -6,7 +6,7 @@
 
     <groupId>com.gigaspaces</groupId>
     <artifactId>xap-spatial</artifactId>
-    <version>11.0.1-SNAPSHOT</version>
+    <version>11.0.0-14815-RELEASE</version>
 
     <repositories>
         <repository>
